@@ -1,6 +1,14 @@
 import {settings} from './utils'
+import fs = require('fs-extra')
+/**
+ * fix dav lib
+ */
+var davBefore = fs.readFileSync(__dirname + '/../node_modules/dav/dav.js', {encoding: 'utf8'})
+var davAfter = davBefore
+  .replace(/\{ name: 'displayname', namespace: ns\.DAV \}, /g, '')
+  .replace(/res\.props\.displayname/g, '\'card\'')
+fs.writeFileSync(__dirname + '/../node_modules/dav/dav.js', davAfter, 'utf8')
 var dav = require('dav')
-var davIcloud = require('../lib/dav_icloud')
 import {Promise} from 'es6-promise'
 
 //dav.debug.enabled = true
@@ -27,7 +35,7 @@ export function carddavClients (): Promise<boolean>
             })
         )
         
-        let client = account.url.indexOf('.icloud.com') > -1 ? new davIcloud.Client(xhr) : new dav.Client(xhr)
+        let client = new dav.Client(xhr) // account.url.indexOf('.icloud.com') > -1 ? new davIcloud.Client(xhr) : new dav.Client(xhr)
         let clientPromise = client.createAccount({
             accountType: 'carddav',
             server: account.url,
