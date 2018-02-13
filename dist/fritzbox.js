@@ -31,7 +31,7 @@ var __spread = (this && this.__spread) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("./utils");
-var Iconv = require('iconv').Iconv;
+var iconv = require("iconv-lite");
 var md5 = require("md5");
 var es6_promise_1 = require("es6-promise");
 var rp = require('request-promise-native');
@@ -213,8 +213,7 @@ function fritzBoxSid() {
             return res;
         // build challenge response
         var challenge = res.SessionInfo.Challenge[0];
-        var iconv = new Iconv('UTF-8', 'UCS-2LE');
-        var response = challenge + '-' + md5(iconv.convert(challenge + '-' + utils_1.settings.fritzbox.password));
+        var response = challenge + '-' + md5(iconv.encode(challenge + '-' + utils_1.settings.fritzbox.password, 'ucs2'));
         var opt = {
             uri: 'http://' + utils_1.settings.fritzbox.url + '/login_sid.lua',
             qs: {

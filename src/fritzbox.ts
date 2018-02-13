@@ -1,5 +1,5 @@
 import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilParseXml} from './utils'
-const Iconv = require('iconv').Iconv
+import iconv = require('iconv-lite')
 import md5 = require('md5')
 import {Promise} from 'es6-promise'
 var rp = require('request-promise-native')
@@ -161,8 +161,7 @@ function fritzBoxSid (): Promise<string>
             
             // build challenge response
             let challenge = res.SessionInfo.Challenge[0]
-            let iconv = new Iconv('UTF-8', 'UCS-2LE')
-            let response = challenge + '-' + md5(iconv.convert(challenge + '-' + settings.fritzbox.password))
+            let response = challenge + '-' + md5(iconv.encode(challenge + '-' + settings.fritzbox.password, 'ucs2'))
             let opt = {
                 uri: 'http://' + settings.fritzbox.url + '/login_sid.lua',
                 qs: {
