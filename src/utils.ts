@@ -4,7 +4,7 @@ import PhoneNumber from 'awesome-phonenumber'
 import {Promise} from 'es6-promise'
 import Xml2js = require('xml2js')
 
-export const settings = json.parse(fs.readFileSync('./settings.json', {encoding: 'utf8'}))
+export const settings = json.parse(fs.readFileSync(__dirname + '/settings.json', {encoding: 'utf8'}))
 
 /**
  * convert number to PhoneNumber
