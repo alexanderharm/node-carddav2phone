@@ -8,7 +8,7 @@ var fs = require("fs-extra");
 var awesome_phonenumber_1 = __importDefault(require("awesome-phonenumber"));
 var es6_promise_1 = require("es6-promise");
 var Xml2js = require("xml2js");
-exports.settings = json.parse(fs.readFileSync(__dirname + '/settings.json', { encoding: 'utf8' }));
+exports.settings = json.parse(fs.readFileSync(__dirname + '/../settings.json', { encoding: 'utf8' }));
 /**
  * convert number to PhoneNumber
  * @param number
