@@ -1,0 +1,54 @@
+{
+    // update interval in minutes
+    "updateInterval": 5,
+    // define your CardDAV accounts here
+    "carddav": {
+        "accounts": [
+            {
+                "url": "https://contacts.icloud.com",
+                "username": "myusername",
+                // some providers with two factor auth ask you to generate an app specific key
+                "password": "supersecretkey"
+            }
+        ]
+    },
+    "telephony": {
+        // your ISO country code
+        "countryCode": "DE",
+        // your area code
+        "areaCode": "0721"
+    },
+    "fritzbox": {
+        // IP or FQDN
+        "url": "fritz.box",
+        // Don't forget to adjust your Fritz!Box settings to allow login as user with password
+        "username": "admin",
+        "password": "supersecretkey",
+        "telephoneBookName": "Telefonbuch",
+        "telephoneBookId": 0,
+        // define an arbitrary order of 'first' and 'last' name
+        "name": ["first", "last"],
+        // define an arbitrary order of 'home', 'mobile' and 'work'
+        // defaults to order of vCard if empty
+        "order": ["home", "mobile", "work"],
+        // success message Fritz!Box
+        "message": "Das Telefonbuch der FRITZ!Box wurde wiederhergestellt."
+    },
+    "snom": {
+        "xcap": {
+            // the final path will be '<webroot>/<dir>/users/sip:<sipAccount>/<filename>'
+            "webroot": ".",
+            "dir": "",
+            "filename": "snom_xcap.xml",
+            "sipAccounts": [
+                "snomd315buro@fritz.box",
+                "snomd315pc@fritz.box"
+            ],
+            // define an arbitrary order of 'first' and 'last' name
+            "name": ["first", "last"],
+            // define an arbitrary order of 'home', 'mobile' and 'work'
+            // defaults to order of vCard if empty
+            "order": ["home", "mobile", "work"]
+        }
+    }
+}
