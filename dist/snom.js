@@ -156,7 +156,7 @@ function snomXcapProcessCard(uid, last, first, tels) {
     var i = 0;
     var telephony = [];
     var count = {
-        business: 0,
+        work: 0,
         home: 0,
         mobile: 0
     };
@@ -168,7 +168,7 @@ function snomXcapProcessCard(uid, last, first, tels) {
                 for (var entries_1 = __values(entries), entries_1_1 = entries_1.next(); !entries_1_1.done; entries_1_1 = entries_1.next()) {
                     var entry = entries_1_1.value;
                     if (type === 'default' || type === entry.type) {
-                        var n = entry.type + '_number';
+                        var n = entry.type.replace('work', 'business') + '_number';
                         if (count[entry.type] > 0)
                             n += '#' + count[entry.type];
                         telephony.push({

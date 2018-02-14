@@ -118,7 +118,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, tels: str
     let i = 0
     let telephony = []
     let count: any = {
-        business: 0,
+        work: 0,
         home: 0,
         mobile: 0
     }
@@ -130,7 +130,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, tels: str
         {
             if (type === 'default' || type === entry.type)
             {
-                let n = entry.type + '_number'
+                let n = entry.type.replace('work', 'business') + '_number'
                 if (count[entry.type] > 0) n += '#' + count[entry.type]
                 telephony.push({
                     'cp:prop': [
