@@ -43,9 +43,9 @@ export function utilNumberGetType (type: string|string[], number: PhoneNumber): 
   
     if (number.isMobile()) return 'mobile'
     else if (type.length < 2) return 'home'
-    else if (type.indexOf('voice') > 0)
+    else if (type.indexOf('voice') > -1)
     {
-        if (type.indexOf('work') > 0) return 'work'
+        if (type.indexOf('work') > -1) return 'work'
         return 'home'
     }
     return

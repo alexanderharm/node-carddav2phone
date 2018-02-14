@@ -40,8 +40,8 @@ function utilNumberGetType(type, number) {
         return 'mobile';
     else if (type.length < 2)
         return 'home';
-    else if (type.indexOf('voice') > 0) {
-        if (type.indexOf('work') > 0)
+    else if (type.indexOf('voice') > -1) {
+        if (type.indexOf('work') > -1)
             return 'work';
         return 'home';
     }
