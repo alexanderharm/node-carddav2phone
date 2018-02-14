@@ -10,6 +10,7 @@ var davAfter = davBefore
 fs.writeFileSync(__dirname + '/../node_modules/dav/dav.js', davAfter, 'utf8')
 var dav = require('dav')
 import {Promise} from 'es6-promise'
+import {shallowEqual} from 'shallow-equal-object'
 
 //dav.debug.enabled = true
 
@@ -62,17 +63,25 @@ export function carddavUpdate (): Promise<boolean> {
 
     console.log('CardDAV: updating')
     let updates: Promise<any>[] = []
-    let ctags: string[] = []
+    let addressDataBefore: any[] = []
+    let addressDataAfter: any[] = []
 
     for (let client of clients)
     {
         // iterate address books
         for (let addressBook of client.addressBooks)
         {
-            ctags.push(addressBook.ctag)
+            for (let object of addressBook.objects)
+            {
+                addressDataBefore.push(object.addressData)
+            }
+
             updates.push(
                 client.client
                 .syncAddressBook(addressBook)
+                .then((res: any) => {
+                    return Promise.resolve(true)
+                })
                 .catch((err: any) => {
                     console.log('CardDAV: updating address book failed')
                     return Promise.resolve(false)
@@ -91,16 +100,21 @@ export function carddavUpdate (): Promise<boolean> {
             // iterate address books
             for (let addressBook of client.addressBooks)
             {
-                if (ctags.indexOf(addressBook.ctag) < 0)
+                for (let object of addressBook.objects)
                 {
-                    console.log('CardDAV: updates available')
-                    return Promise.resolve(true)
+                    addressDataAfter.push(object.addressData)
                 }
             }
 
         }
-        console.log('CardDAV: no updates')
-        return Promise.resolve(false)
+        
+        if (shallowEqual(addressDataBefore, addressDataAfter))
+        {
+            console.log('CardDAV: no updates')
+            return Promise.resolve(false)
+        }
+        console.log('CardDAV: updates available')
+        return Promise.resolve(true)
     })
 }
   

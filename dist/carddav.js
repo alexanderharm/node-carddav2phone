@@ -42,6 +42,7 @@ var davAfter = davBefore
 fs.writeFileSync(__dirname + '/../node_modules/dav/dav.js', davAfter, 'utf8');
 var dav = require('dav');
 var es6_promise_1 = require("es6-promise");
+var shallow_equal_object_1 = require("shallow-equal-object");
 //dav.debug.enabled = true
 /**
  * The clients
@@ -98,7 +99,8 @@ exports.carddavClients = carddavClients;
 function carddavUpdate() {
     console.log('CardDAV: updating');
     var updates = [];
-    var ctags = [];
+    var addressDataBefore = [];
+    var addressDataAfter = [];
     try {
         for (var clients_1 = __values(clients), clients_1_1 = clients_1.next(); !clients_1_1.done; clients_1_1 = clients_1.next()) {
             var client = clients_1_1.value;
@@ -106,30 +108,45 @@ function carddavUpdate() {
                 // iterate address books
                 for (var _a = __values(client.addressBooks), _b = _a.next(); !_b.done; _b = _a.next()) {
                     var addressBook = _b.value;
-                    ctags.push(addressBook.ctag);
+                    try {
+                        for (var _c = __values(addressBook.objects), _d = _c.next(); !_d.done; _d = _c.next()) {
+                            var object = _d.value;
+                            addressDataBefore.push(object.addressData);
+                        }
+                    }
+                    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                    finally {
+                        try {
+                            if (_d && !_d.done && (_e = _c.return)) _e.call(_c);
+                        }
+                        finally { if (e_2) throw e_2.error; }
+                    }
                     updates.push(client.client
                         .syncAddressBook(addressBook)
+                        .then(function (res) {
+                        return es6_promise_1.Promise.resolve(true);
+                    })
                         .catch(function (err) {
                         console.log('CardDAV: updating address book failed');
                         return es6_promise_1.Promise.resolve(false);
                     }));
                 }
             }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
             finally {
                 try {
-                    if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                    if (_b && !_b.done && (_f = _a.return)) _f.call(_a);
                 }
-                finally { if (e_2) throw e_2.error; }
+                finally { if (e_3) throw e_3.error; }
             }
         }
     }
-    catch (e_3_1) { e_3 = { error: e_3_1 }; }
+    catch (e_4_1) { e_4 = { error: e_4_1 }; }
     finally {
         try {
-            if (clients_1_1 && !clients_1_1.done && (_d = clients_1.return)) _d.call(clients_1);
+            if (clients_1_1 && !clients_1_1.done && (_g = clients_1.return)) _g.call(clients_1);
         }
-        finally { if (e_3) throw e_3.error; }
+        finally { if (e_4) throw e_4.error; }
     }
     return es6_promise_1.Promise
         .all(updates)
@@ -141,33 +158,46 @@ function carddavUpdate() {
                     // iterate address books
                     for (var _a = __values(client.addressBooks), _b = _a.next(); !_b.done; _b = _a.next()) {
                         var addressBook = _b.value;
-                        if (ctags.indexOf(addressBook.ctag) < 0) {
-                            console.log('CardDAV: updates available');
-                            return es6_promise_1.Promise.resolve(true);
+                        try {
+                            for (var _c = __values(addressBook.objects), _d = _c.next(); !_d.done; _d = _c.next()) {
+                                var object = _d.value;
+                                addressDataAfter.push(object.addressData);
+                            }
+                        }
+                        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+                        finally {
+                            try {
+                                if (_d && !_d.done && (_e = _c.return)) _e.call(_c);
+                            }
+                            finally { if (e_5) throw e_5.error; }
                         }
                     }
                 }
-                catch (e_4_1) { e_4 = { error: e_4_1 }; }
+                catch (e_6_1) { e_6 = { error: e_6_1 }; }
                 finally {
                     try {
-                        if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                        if (_b && !_b.done && (_f = _a.return)) _f.call(_a);
                     }
-                    finally { if (e_4) throw e_4.error; }
+                    finally { if (e_6) throw e_6.error; }
                 }
             }
         }
-        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
         finally {
             try {
-                if (clients_2_1 && !clients_2_1.done && (_d = clients_2.return)) _d.call(clients_2);
+                if (clients_2_1 && !clients_2_1.done && (_g = clients_2.return)) _g.call(clients_2);
             }
-            finally { if (e_5) throw e_5.error; }
+            finally { if (e_7) throw e_7.error; }
         }
-        console.log('CardDAV: no updates');
-        return es6_promise_1.Promise.resolve(false);
-        var e_5, _d, e_4, _c;
+        if (shallow_equal_object_1.shallowEqual(addressDataBefore, addressDataAfter)) {
+            console.log('CardDAV: no updates');
+            return es6_promise_1.Promise.resolve(false);
+        }
+        console.log('CardDAV: updates available');
+        return es6_promise_1.Promise.resolve(true);
+        var e_7, _g, e_6, _f, e_5, _e;
     });
-    var e_3, _d, e_2, _c;
+    var e_4, _g, e_3, _f, e_2, _e;
 }
 exports.carddavUpdate = carddavUpdate;
 /**
@@ -185,23 +215,23 @@ function carddavVcards() {
                     vcards.push.apply(vcards, __spread(addressBook.objects));
                 }
             }
-            catch (e_6_1) { e_6 = { error: e_6_1 }; }
+            catch (e_8_1) { e_8 = { error: e_8_1 }; }
             finally {
                 try {
                     if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                 }
-                finally { if (e_6) throw e_6.error; }
+                finally { if (e_8) throw e_8.error; }
             }
         }
     }
-    catch (e_7_1) { e_7 = { error: e_7_1 }; }
+    catch (e_9_1) { e_9 = { error: e_9_1 }; }
     finally {
         try {
             if (clients_3_1 && !clients_3_1.done && (_d = clients_3.return)) _d.call(clients_3);
         }
-        finally { if (e_7) throw e_7.error; }
+        finally { if (e_9) throw e_9.error; }
     }
     return vcards;
-    var e_7, _d, e_6, _c;
+    var e_9, _d, e_8, _c;
 }
 exports.carddavVcards = carddavVcards;
