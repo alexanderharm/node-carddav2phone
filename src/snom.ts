@@ -1,4 +1,4 @@
-import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilParseXml} from './utils'
+import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
 import fs = require('fs-extra')
 import {Promise} from 'es6-promise'
 const Vcf = require('vcf')
@@ -101,6 +101,8 @@ function snomXcapProcessCard(uid: string, last: string, first: string, tels: str
     // iterate through all numbers
     for (let tel of tels)
     {
+        // test if number
+        if (!utilNumberValid(tel.valueOf())) continue
         // convert to PhoneNumber
         let phoneNumber = utilNumberConvert(tel.valueOf())
         // determine type

@@ -1,4 +1,4 @@
-import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilParseXml} from './utils'
+import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
 import iconv = require('iconv-lite')
 import md5 = require('md5')
 import {Promise} from 'es6-promise'
@@ -81,6 +81,8 @@ function fritzBoxProcessCard(last: string, first: string, tels: string|any[]): a
     // iterate through all numbers
     for (let tel of tels)
     {
+        // test if number
+        if (!utilNumberValid(tel.valueOf())) continue
         // convert to PhoneNumber
         let phoneNumber = utilNumberConvert(tel.valueOf())
         // determine type

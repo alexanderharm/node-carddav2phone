@@ -61,6 +61,14 @@ function utilNumberSanitize(phoneNumber) {
 }
 exports.utilNumberSanitize = utilNumberSanitize;
 /**
+ * validate number
+ * @param phoneNumber
+ */
+function utilNumberValid(phoneNumber) {
+    return /[0-9]{4}$/.test(phoneNumber.replace(/[^0-9]/g, ''));
+}
+exports.utilNumberValid = utilNumberValid;
+/**
  * promisify parse xml
  * @param xml
  */

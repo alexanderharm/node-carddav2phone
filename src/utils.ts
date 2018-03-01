@@ -66,6 +66,15 @@ export function utilNumberSanitize (phoneNumber: PhoneNumber): string
 }
 
 /**
+ * validate number
+ * @param phoneNumber 
+ */
+export function utilNumberValid (phoneNumber: string): boolean
+{
+    return /[0-9]{4}$/.test(phoneNumber.replace(/[^0-9]/g, ''))
+}
+
+/**
  * promisify parse xml
  * @param xml 
  */

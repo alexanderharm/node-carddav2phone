@@ -113,6 +113,9 @@ function fritzBoxProcessCard(last, first, tels) {
         // iterate through all numbers
         for (var tels_1 = __values(tels), tels_1_1 = tels_1.next(); !tels_1_1.done; tels_1_1 = tels_1.next()) {
             var tel = tels_1_1.value;
+            // test if number
+            if (!utils_1.utilNumberValid(tel.valueOf()))
+                continue;
             // convert to PhoneNumber
             var phoneNumber = utils_1.utilNumberConvert(tel.valueOf());
             // determine type
