@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>de.apfel-q.node-carddav2phone</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/sadmin/Documents/node-carddav2phone/dist/index.js</string>
+  </array>
+
+  <key>Nice</key>
+  <integer>1</integer>
+
+  <key>StartInterval</key>
+  <integer>120</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>
+</dict>
+</plist>
