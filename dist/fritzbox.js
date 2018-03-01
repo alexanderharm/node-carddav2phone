@@ -72,7 +72,7 @@ function fritzBoxProcessCards(vcards) {
                 continue;
             // process card (pass 'Full Name' and telephone numbers)
             var names = vcf.get('n').valueOf().split(';');
-            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), tel);
+            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel);
             if (entry)
                 entries.push(entry);
         }
@@ -103,7 +103,7 @@ function fritzBoxProcessCards(vcards) {
  * @param first
  * @param tels
  */
-function fritzBoxProcessCard(last, first, tels) {
+function fritzBoxProcessCard(last, first, org, tels) {
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     var entries = [];
     // test if tel is an array
@@ -137,7 +137,6 @@ function fritzBoxProcessCard(last, first, tels) {
         return;
     // process all types and numbers
     var typeOrder = utils_1.settings.fritzbox.order.length < 3 ? ['default'] : utils_1.settings.fritzbox.order;
-    var name = utils_1.settings.fritzbox.name.indexOf(first) > 0 ? last + ' ' + first : first + ' ' + last;
     var i = 0;
     var telephony = [];
     try {
@@ -184,7 +183,7 @@ function fritzBoxProcessCard(last, first, tels) {
         contact: [
             {
                 person: [{
-                        realName: name
+                        realName: utils_1.utilNameFormat(last, first, org)
                     }]
             },
             {

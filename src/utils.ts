@@ -2,9 +2,46 @@ import json = require('comment-json')
 import fs = require('fs-extra')
 import PhoneNumber from 'awesome-phonenumber'
 import {Promise} from 'es6-promise'
+const Vcf = require('vcf')
 import Xml2js = require('xml2js')
 
 export const settings = json.parse(fs.readFileSync(__dirname + '/../settings.json', {encoding: 'utf8'}))
+
+/**
+ * get company name
+ * @param vcf 
+ */
+export function utilOrgName (vcf: any): string
+{
+    if (typeof vcf.get('org') === 'undefined') return ''
+    else {
+        return vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim()
+    }
+}
+
+/**
+ * format display name
+ * @param last 
+ * @param first 
+ * @param org 
+ */
+export function utilNameFormat (last: string, first: string, org: string): string
+{
+    let name = ''
+    if (settings.fritzbox.name.indexOf(first) > 0)
+    {
+        if (last.length > 0) name += last
+        if (first.length > 0) name += ' ' + first
+    }
+    else
+    {
+        if (first.length > 0) name += first
+        if (last.length > 0) name += ' ' + last
+    }
+
+    if (org.length > 0) name += ' - ' + org
+    return name.replace(/\\/g, '').replace(/^ \- /g, '').replace(/  /g, '').trim()
+}
 
 /**
  * convert number to PhoneNumber

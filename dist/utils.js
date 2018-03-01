@@ -7,8 +7,46 @@ var json = require("comment-json");
 var fs = require("fs-extra");
 var awesome_phonenumber_1 = __importDefault(require("awesome-phonenumber"));
 var es6_promise_1 = require("es6-promise");
+var Vcf = require('vcf');
 var Xml2js = require("xml2js");
 exports.settings = json.parse(fs.readFileSync(__dirname + '/../settings.json', { encoding: 'utf8' }));
+/**
+ * get company name
+ * @param vcf
+ */
+function utilOrgName(vcf) {
+    if (typeof vcf.get('org') === 'undefined')
+        return '';
+    else {
+        return vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim();
+    }
+}
+exports.utilOrgName = utilOrgName;
+/**
+ * format display name
+ * @param last
+ * @param first
+ * @param org
+ */
+function utilNameFormat(last, first, org) {
+    var name = '';
+    if (exports.settings.fritzbox.name.indexOf(first) > 0) {
+        if (last.length > 0)
+            name += last;
+        if (first.length > 0)
+            name += ' ' + first;
+    }
+    else {
+        if (first.length > 0)
+            name += first;
+        if (last.length > 0)
+            name += ' ' + last;
+    }
+    if (org.length > 0)
+        name += ' - ' + org;
+    return name.replace(/\\/g, '').replace(/^ \- /g, '').replace(/  /g, '').trim();
+}
+exports.utilNameFormat = utilNameFormat;
 /**
  * convert number to PhoneNumber
  * @param number

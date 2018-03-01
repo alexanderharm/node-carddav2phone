@@ -1,4 +1,4 @@
-import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
+import {settings, utilOrgName, utilNameFormat, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
 import fs = require('fs-extra')
 import {Promise} from 'es6-promise'
 const Vcf = require('vcf')
@@ -57,7 +57,7 @@ function snomXcapProcessCards (vcards: any[]): any
 
         // process card (pass 'Full Name' and telephone numbers)
         let names = vcf.get('n').valueOf().split(';')
-        let entry = snomXcapProcessCard(vcf.get('uid').valueOf(), names[0].trim(), names[1].trim(), tel)
+        let entry = snomXcapProcessCard(vcf.get('uid').valueOf(), names[0].trim(), names[1].trim(), utilOrgName(vcf), tel)
         if (entry) entries.push(entry)
     }
 
@@ -90,7 +90,7 @@ function snomXcapProcessCards (vcards: any[]): any
  * @param first 
  * @param tel 
  */
-function snomXcapProcessCard(uid: string, last: string, first: string, tels: string|any[]): any
+function snomXcapProcessCard(uid: string, last: string, first: string, org: string, tels: string|any[]): any
 {
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     let entries = []
@@ -116,7 +116,6 @@ function snomXcapProcessCard(uid: string, last: string, first: string, tels: str
   
     // process all types and numbers
     let typeOrder = settings.fritzbox.order.length < 3 ? [ 'default' ] : settings.fritzbox.order
-    let name = settings.fritzbox.name.indexOf(first) > 0 ? last + ' ' + first : first + ' ' + last
     let i = 0
     let telephony = []
     let count: any = {
@@ -152,7 +151,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, tels: str
     return {
         entry: [
             {
-                'display-name': name
+                'display-name': utilNameFormat(last, first, org)
             },
             {
                 'cp:prop': [
@@ -180,6 +179,16 @@ function snomXcapProcessCard(uid: string, last: string, first: string, tels: str
                         _attr: {
                             name: 'given_name',
                             value: first
+                        }
+                    }
+                ]
+            },
+            {
+                'cp:prop': [
+                    {
+                        _attr: {
+                            name: 'company',
+                            value: org
                         }
                     }
                 ]

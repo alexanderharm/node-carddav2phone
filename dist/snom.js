@@ -81,7 +81,7 @@ function snomXcapProcessCards(vcards) {
                 continue;
             // process card (pass 'Full Name' and telephone numbers)
             var names = vcf.get('n').valueOf().split(';');
-            var entry = snomXcapProcessCard(vcf.get('uid').valueOf(), names[0].trim(), names[1].trim(), tel);
+            var entry = snomXcapProcessCard(vcf.get('uid').valueOf(), names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel);
             if (entry)
                 entries.push(entry);
         }
@@ -121,7 +121,7 @@ function snomXcapProcessCards(vcards) {
  * @param first
  * @param tel
  */
-function snomXcapProcessCard(uid, last, first, tels) {
+function snomXcapProcessCard(uid, last, first, org, tels) {
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     var entries = [];
     // test if tel is an array
@@ -155,7 +155,6 @@ function snomXcapProcessCard(uid, last, first, tels) {
         return;
     // process all types and numbers
     var typeOrder = utils_1.settings.fritzbox.order.length < 3 ? ['default'] : utils_1.settings.fritzbox.order;
-    var name = utils_1.settings.fritzbox.name.indexOf(first) > 0 ? last + ' ' + first : first + ' ' + last;
     var i = 0;
     var telephony = [];
     var count = {
@@ -207,7 +206,7 @@ function snomXcapProcessCard(uid, last, first, tels) {
     return {
         entry: __spread([
             {
-                'display-name': name
+                'display-name': utils_1.utilNameFormat(last, first, org)
             },
             {
                 'cp:prop': [
@@ -235,6 +234,16 @@ function snomXcapProcessCard(uid, last, first, tels) {
                         _attr: {
                             name: 'given_name',
                             value: first
+                        }
+                    }
+                ]
+            },
+            {
+                'cp:prop': [
+                    {
+                        _attr: {
+                            name: 'company',
+                            value: org
                         }
                     }
                 ]

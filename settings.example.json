@@ -15,7 +15,7 @@
     "telephony": {
         // your ISO country code
         "countryCode": "DE",
-        // your area code
+        // your area code (set to empty string to prevent removal of area code)
         "areaCode": "0721"
     },
     "fritzbox": {

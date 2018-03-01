@@ -1,4 +1,4 @@
-import {settings, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
+import {settings, utilOrgName, utilNameFormat, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
 import iconv = require('iconv-lite')
 import md5 = require('md5')
 import {Promise} from 'es6-promise'
@@ -45,7 +45,7 @@ function fritzBoxProcessCards (vcards: any[]): any
 
         // process card (pass 'Full Name' and telephone numbers)
         let names = vcf.get('n').valueOf().split(';')
-        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), tel)
+        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel)
         if (entry) entries.push(entry)
     }
 
@@ -69,7 +69,7 @@ function fritzBoxProcessCards (vcards: any[]): any
  * @param first 
  * @param tels 
  */
-function fritzBoxProcessCard(last: string, first: string, tels: string|any[]): any
+function fritzBoxProcessCard(last: string, first: string, org: string, tels: string|any[]): any
 {
   
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
@@ -96,7 +96,6 @@ function fritzBoxProcessCard(last: string, first: string, tels: string|any[]): a
   
     // process all types and numbers
     let typeOrder = settings.fritzbox.order.length < 3 ? [ 'default' ] : settings.fritzbox.order
-    let name = settings.fritzbox.name.indexOf(first) > 0 ? last + ' ' + first : first + ' ' + last
     let i = 0
     let telephony = []
 
@@ -130,7 +129,7 @@ function fritzBoxProcessCard(last: string, first: string, tels: string|any[]): a
         contact: [
             {
                 person: [{
-                    realName: name
+                    realName: utilNameFormat(last, first, org)
                 }]
             },
             {
