@@ -11,9 +11,8 @@ import xml = require('xml')
 export function snomHandler (vcards: any[]): Promise<boolean[]>
 {
     console.log('Snom: start')
-    let snomHandlers = [
-        snomXcapHandler(vcards)
-    ]
+    let snomHandlers: any[] = []
+    if (settings.snom.xcap) snomHandlers.push(snomXcapHandler(vcards))
     return Promise.all(snomHandlers)
 }
 
@@ -115,7 +114,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
     if (entries.length === 0) return
   
     // process all types and numbers
-    let typeOrder = settings.fritzbox.order.length < 3 ? [ 'default' ] : settings.fritzbox.order
+    let typeOrder = settings.snom.xcap.order.length < 3 ? [ 'default' ] : settings.snom.xcap.order
     let i = 0
     let telephony = []
     let count: any = {

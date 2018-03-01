@@ -41,9 +41,9 @@ var xml = require("xml");
  */
 function snomHandler(vcards) {
     console.log('Snom: start');
-    var snomHandlers = [
-        snomXcapHandler(vcards)
-    ];
+    var snomHandlers = [];
+    if (utils_1.settings.snom.xcap)
+        snomHandlers.push(snomXcapHandler(vcards));
     return es6_promise_1.Promise.all(snomHandlers);
 }
 exports.snomHandler = snomHandler;
@@ -154,7 +154,7 @@ function snomXcapProcessCard(uid, last, first, org, tels) {
     if (entries.length === 0)
         return;
     // process all types and numbers
-    var typeOrder = utils_1.settings.fritzbox.order.length < 3 ? ['default'] : utils_1.settings.fritzbox.order;
+    var typeOrder = utils_1.settings.snom.xcap.order.length < 3 ? ['default'] : utils_1.settings.snom.xcap.order;
     var i = 0;
     var telephony = [];
     var count = {
