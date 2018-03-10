@@ -58,6 +58,9 @@ function utilNumberConvert(number) {
         .replace(/^\+/, '00')
         .replace(/[^0-9]/g, '')
         .replace(/^00/, '+');
+    // if phone number is shorter than 8 digits and doesn't start with 0 add area code
+    if (number.length < 8 && /^[^0]/.test(number))
+        number = exports.settings.telephony.areaCode + number;
     // check if region code can be guessed and if not set it with default
     var phoneNumber = new awesome_phonenumber_1.default(number);
     if (!phoneNumber.getRegionCode())
@@ -91,9 +94,12 @@ exports.utilNumberGetType = utilNumberGetType;
  * @param phoneNumber
  */
 function utilNumberSanitize(phoneNumber) {
-    if (phoneNumber.getRegionCode() === exports.settings.telephony.countryCode) {
-        var reAreaCode = new RegExp('^' + exports.settings.telephony.areaCode);
-        return phoneNumber.getNumber('national').replace(/[^0-9]/g, '').replace(reAreaCode, '');
+    if (exports.settings.telephony.stripCountryCode && phoneNumber.getRegionCode() === exports.settings.telephony.countryCode) {
+        if (exports.settings.telephony.stripAreaCode) {
+            var reAreaCode = new RegExp('^' + exports.settings.telephony.areaCode);
+            return phoneNumber.getNumber('national').replace(/[^0-9]/g, '').replace(reAreaCode, '');
+        }
+        return phoneNumber.getNumber('national').replace(/[^0-9]/g, '');
     }
     return phoneNumber.getNumber('e164');
 }

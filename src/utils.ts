@@ -61,6 +61,9 @@ export function utilNumberConvert (number: string): PhoneNumber
     // replace leading zeros with '+'
     .replace(/^00/, '+')
 
+    // if phone number is shorter than 8 digits and doesn't start with 0 add area code
+    if (number.length < 8 && /^[^0]/.test(number)) number = settings.telephony.areaCode + number
+
     // check if region code can be guessed and if not set it with default
     let phoneNumber = new PhoneNumber(number)
     if (!phoneNumber.getRegionCode()) phoneNumber = new PhoneNumber(number, settings.telephony.countryCode)
@@ -94,10 +97,13 @@ export function utilNumberGetType (type: string|string[], number: PhoneNumber): 
  */
 export function utilNumberSanitize (phoneNumber: PhoneNumber): string
 {
-    if (phoneNumber.getRegionCode() === settings.telephony.countryCode)
+    if (settings.telephony.stripCountryCode && phoneNumber.getRegionCode() === settings.telephony.countryCode)
     {
-        let reAreaCode = new RegExp('^' + settings.telephony.areaCode)
-        return phoneNumber.getNumber('national').replace(/[^0-9]/g, '').replace(reAreaCode, '')
+        if (settings.telephony.stripAreaCode) {
+            let reAreaCode = new RegExp('^' + settings.telephony.areaCode)
+            return phoneNumber.getNumber('national').replace(/[^0-9]/g, '').replace(reAreaCode, '')
+        }
+        return phoneNumber.getNumber('national').replace(/[^0-9]/g, '')
     }
     return phoneNumber.getNumber('e164')
 }

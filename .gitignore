@@ -60,5 +60,5 @@ typings/
 .DS_Store
 users
 settings.json
-settings.kb.json
-settings.cmc.json
+settings.??.json
+settings.???.json

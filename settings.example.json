@@ -15,8 +15,12 @@
     "telephony": {
         // your ISO country code
         "countryCode": "DE",
-        // your area code (set to empty string to prevent removal of area code)
-        "areaCode": "0721"
+        // strip own country code from resulting number
+        "stripCountryCode": false,
+        // your area code
+        "areaCode": "0721",
+        // strip your area code from resulting number
+        "stripAreaCode": false
     },
     "fritzbox": {
         // IP or FQDN
