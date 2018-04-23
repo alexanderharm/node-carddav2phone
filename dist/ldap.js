@@ -142,7 +142,7 @@ function ldapProcessCard(uid, last, first, org, tels) {
 function ldapBind(client) {
     console.log('LDAP: attempting bind');
     return new es6_promise_1.Promise(function (resolve, reject) {
-        client.bind(utils_1.settings.ldap.user, utils_1.settings.user.password, function (err) {
+        client.bind(utils_1.settings.ldap.user, utils_1.settings.ldap.password, function (err) {
             if (err)
                 reject(err);
             resolve(true);

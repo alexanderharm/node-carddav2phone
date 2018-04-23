@@ -114,7 +114,7 @@ function ldapBind (client: any): Promise<boolean>
 {
     console.log('LDAP: attempting bind')
     return new Promise((resolve, reject) => {
-        client.bind(settings.ldap.user, settings.user.password, (err: any) => {
+        client.bind(settings.ldap.user, settings.ldap.password, (err: any) => {
             if (err) reject(err)
             resolve(true)
         })
