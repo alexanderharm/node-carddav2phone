@@ -94,19 +94,19 @@ function ldapProcessCard(uid: string, last: string, first: string, org: string, 
         telephony[entry.type].push(entry.number)
     }
 
-    let telObj: any = {}
-    if (telephony.home.length > 0) telObj.homePhone = telephony.home[0]
-    if (telephony.mobile.length > 0) telObj.mobile = telephony.mobile[0]
-    if (telephony.work.length > 0) telObj.telephoneNumber = telephony.work[0]
+    let contact: any = {}
+    contact.surname = last ? last : utilNameFormat(last, first, org)
+    contact.givenName = first ? first : utilNameFormat(last, first, org)
+    if (telephony.home.length > 0) contact.homePhone = telephony.home[0]
+    if (telephony.mobile.length > 0) contact.mobile = telephony.mobile[0]
+    if (telephony.work.length > 0) contact.telephoneNumber = telephony.work[0]
 
     return {
         objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'],
         uid: uid,
         commonName: utilNameFormat(last, first, org),
         displayName: utilNameFormat(last, first, org),
-        surname: last,
-        givenName: first,
-        ...telObj
+        ...contact
     }
 }
 
@@ -137,8 +137,8 @@ function ldapSearch (client: any): Promise<string[]>
     return new Promise((resolve, reject) => {
         client.search(settings.ldap.searchBase, opts, (err: any, res: any) => {
             if (err) reject(err)
-            res.on('searchEntry', (entry: string) => {
-                entries.push(entry)
+            res.on('searchEntry', (entry: any) => {
+                entries.push(entry.objectName)
             })
             res.on('error', (err: any) => {
                 reject(err)
@@ -177,13 +177,15 @@ function ldapAdd (client: any, contacts: any[]): Promise<any>
     let addOps: Promise<any>[] = []
     for (let contact of contacts) 
     {
-        let p = new Promise((resolve, reject) => {
-            client.add('uid=' + contact.uid + ',' + settings.ldap.searchBase, contact, (err: any) => {
-                if (err) reject(err)
-                resolve(true)
+        if (contact) {
+            let p = new Promise((resolve, reject) => {
+                client.add('uid=' + contact.uid + ',' + settings.ldap.searchBase, contact, (err: any) => {
+                    if (err) reject(err)
+                    resolve(true)
+                })
             })
-        })
-        addOps.push(p)
+            addOps.push(p)
+        }
     }
     return Promise.all(addOps).then((res) => {
         console.log('LDAP: add complete')

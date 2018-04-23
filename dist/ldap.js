@@ -131,14 +131,16 @@ function ldapProcessCard(uid, last, first, org, tels) {
         }
         finally { if (e_3) throw e_3.error; }
     }
-    var telObj = {};
+    var contact = {};
+    contact.surname = last ? last : utils_1.utilNameFormat(last, first, org);
+    contact.givenName = first ? first : utils_1.utilNameFormat(last, first, org);
     if (telephony.home.length > 0)
-        telObj.homePhone = telephony.home[0];
+        contact.homePhone = telephony.home[0];
     if (telephony.mobile.length > 0)
-        telObj.mobile = telephony.mobile[0];
+        contact.mobile = telephony.mobile[0];
     if (telephony.work.length > 0)
-        telObj.telephoneNumber = telephony.work[0];
-    return __assign({ objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'], uid: uid, commonName: utils_1.utilNameFormat(last, first, org), displayName: utils_1.utilNameFormat(last, first, org), surname: last, givenName: first }, telObj);
+        contact.telephoneNumber = telephony.work[0];
+    return __assign({ objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'], uid: uid, commonName: utils_1.utilNameFormat(last, first, org), displayName: utils_1.utilNameFormat(last, first, org) }, contact);
     var e_2, _a, e_3, _b;
 }
 /**
@@ -168,7 +170,7 @@ function ldapSearch(client) {
             if (err)
                 reject(err);
             res.on('searchEntry', function (entry) {
-                entries.push(entry);
+                entries.push(entry.objectName);
             });
             res.on('error', function (err) {
                 reject(err);
@@ -216,14 +218,16 @@ function ldapAdd(client, contacts) {
     console.log('LDAP: attempting add');
     var addOps = [];
     var _loop_2 = function (contact) {
-        var p = new es6_promise_1.Promise(function (resolve, reject) {
-            client.add('uid=' + contact.uid + ',' + utils_1.settings.ldap.searchBase, contact, function (err) {
-                if (err)
-                    reject(err);
-                resolve(true);
+        if (contact) {
+            var p = new es6_promise_1.Promise(function (resolve, reject) {
+                client.add('uid=' + contact.uid + ',' + utils_1.settings.ldap.searchBase, contact, function (err) {
+                    if (err)
+                        reject(err);
+                    resolve(true);
+                });
             });
-        });
-        addOps.push(p);
+            addOps.push(p);
+        }
     };
     try {
         for (var contacts_1 = __values(contacts), contacts_1_1 = contacts_1.next(); !contacts_1_1.done; contacts_1_1 = contacts_1.next()) {
