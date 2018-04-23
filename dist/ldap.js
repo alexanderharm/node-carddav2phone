@@ -138,7 +138,7 @@ function ldapProcessCard(uid, last, first, org, tels) {
         telObj.mobile = telephony.mobile;
     if (telephony.work.length > 0)
         telObj.telephoneNumber = telephony.work;
-    return __assign({ uid: uid, commonName: utils_1.utilNameFormat(last, first, org), displayName: utils_1.utilNameFormat(last, first, org), surname: last, givenName: first }, telObj);
+    return __assign({ objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'], uid: uid, commonName: utils_1.utilNameFormat(last, first, org), displayName: utils_1.utilNameFormat(last, first, org), surname: last, givenName: first }, telObj);
     var e_2, _a, e_3, _b;
 }
 /**

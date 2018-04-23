@@ -100,6 +100,7 @@ function ldapProcessCard(uid: string, last: string, first: string, org: string, 
     if (telephony.work.length > 0) telObj.telephoneNumber = telephony.work
 
     return {
+        objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'],
         uid: uid,
         commonName: utilNameFormat(last, first, org),
         displayName: utilNameFormat(last, first, org),
