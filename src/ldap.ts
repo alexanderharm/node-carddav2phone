@@ -95,9 +95,9 @@ function ldapProcessCard(uid: string, last: string, first: string, org: string, 
     }
 
     let telObj: any = {}
-    if (telephony.home.length > 0) telObj.homePhone = telephony.home
-    if (telephony.mobile.length > 0) telObj.mobile = telephony.mobile
-    if (telephony.work.length > 0) telObj.telephoneNumber = telephony.work
+    if (telephony.home.length > 0) telObj.homePhone = telephony.home[0]
+    if (telephony.mobile.length > 0) telObj.mobile = telephony.mobile[0]
+    if (telephony.work.length > 0) telObj.telephoneNumber = telephony.work[0]
 
     return {
         objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'],

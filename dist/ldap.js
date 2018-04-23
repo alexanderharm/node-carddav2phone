@@ -133,11 +133,11 @@ function ldapProcessCard(uid, last, first, org, tels) {
     }
     var telObj = {};
     if (telephony.home.length > 0)
-        telObj.homePhone = telephony.home;
+        telObj.homePhone = telephony.home[0];
     if (telephony.mobile.length > 0)
-        telObj.mobile = telephony.mobile;
+        telObj.mobile = telephony.mobile[0];
     if (telephony.work.length > 0)
-        telObj.telephoneNumber = telephony.work;
+        telObj.telephoneNumber = telephony.work[0];
     return __assign({ objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'], uid: uid, commonName: utils_1.utilNameFormat(last, first, org), displayName: utils_1.utilNameFormat(last, first, org), surname: last, givenName: first }, telObj);
     var e_2, _a, e_3, _b;
 }
