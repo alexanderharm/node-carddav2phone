@@ -35,12 +35,16 @@ var fs = require("fs-extra");
 var es6_promise_1 = require("es6-promise");
 var Vcf = require('vcf');
 var xml = require("xml");
+// XCAP does not like duplicate numbers!
+var xcapUniqueNumbers;
 /**
  * handler for Snom
  * @param vcards
  */
 function snomHandler(vcards) {
     console.log('Snom: start');
+    // reset unique numbers
+    xcapUniqueNumbers = [];
     var snomHandlers = [];
     if (utils_1.settings.snom.xcap)
         snomHandlers.push(snomXcapHandler(vcards));
@@ -138,9 +142,16 @@ function snomXcapProcessCard(uid, last, first, org, tels) {
             var phoneNumber = utils_1.utilNumberConvert(tel.valueOf());
             // determine type
             var type = utils_1.utilNumberGetType(tel.type, phoneNumber);
+            // check for duplicate phone number
+            var number = utils_1.utilNumberSanitize(phoneNumber);
+            if (xcapUniqueNumbers.indexOf(number) > -1) {
+                console.log('WARNING: Duplicate number (' + number + ') on ' + utils_1.utilNameFormat(last, first, org));
+                continue;
+            }
+            xcapUniqueNumbers.push(number);
             // store number if of type voice
             if (type)
-                entries.push({ type: type, number: utils_1.utilNumberSanitize(phoneNumber) });
+                entries.push({ type: type, number: number });
         }
     }
     catch (e_2_1) { e_2 = { error: e_2_1 }; }

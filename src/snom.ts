@@ -4,6 +4,9 @@ import {Promise} from 'es6-promise'
 const Vcf = require('vcf')
 import xml = require('xml')
 
+// XCAP does not like duplicate numbers!
+let xcapUniqueNumbers: string[]
+
 /**
  * handler for Snom
  * @param vcards 
@@ -11,6 +14,8 @@ import xml = require('xml')
 export function snomHandler (vcards: any[]): Promise<boolean[]>
 {
     console.log('Snom: start')
+    // reset unique numbers
+    xcapUniqueNumbers = []
     let snomHandlers: any[] = []
     if (settings.snom.xcap) snomHandlers.push(snomXcapHandler(vcards))
     return Promise.all(snomHandlers)
@@ -106,8 +111,15 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
         let phoneNumber = utilNumberConvert(tel.valueOf())
         // determine type
         let type = utilNumberGetType(tel.type, phoneNumber)
+        // check for duplicate phone number
+        let number = utilNumberSanitize(phoneNumber)
+        if (xcapUniqueNumbers.indexOf(number) > -1) {
+            console.log('WARNING: Duplicate number (' + number + ') on ' + utilNameFormat(last, first, org))
+            continue
+        }
+        xcapUniqueNumbers.push(number)
         // store number if of type voice
-        if (type) entries.push({type: type, number: utilNumberSanitize(phoneNumber)})
+        if (type) entries.push({type: type, number: number})
     }
   
     // if empty return nothing
