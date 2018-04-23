@@ -31,6 +31,7 @@ var __spread = (this && this.__spread) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("./utils");
+var mailer_1 = require("./mailer");
 var fs = require("fs-extra");
 var es6_promise_1 = require("es6-promise");
 var Vcf = require('vcf');
@@ -149,6 +150,7 @@ function snomXcapProcessCard(uid, last, first, org, tels) {
             var number = utils_1.utilNumberSanitize(phoneNumber);
             if (xcapUniqueNumbers.indexOf(number) > -1) {
                 console.log('WARNING: Duplicate number (' + number + ') on ' + utils_1.utilNameFormat(last, first, org));
+                mailer_1.sendMail('Sync: Duplicate phone number detected', 'Duplicate number (' + number + ') on ' + utils_1.utilNameFormat(last, first, org));
                 continue;
             }
             xcapUniqueNumbers.push(number);

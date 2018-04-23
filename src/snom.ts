@@ -1,4 +1,5 @@
 import {settings, utilOrgName, utilNameFormat, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
+import {sendMail} from './mailer'
 import fs = require('fs-extra')
 import {Promise} from 'es6-promise'
 const Vcf = require('vcf')
@@ -117,6 +118,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
         let number = utilNumberSanitize(phoneNumber)
         if (xcapUniqueNumbers.indexOf(number) > -1) {
             console.log('WARNING: Duplicate number (' + number + ') on ' + utilNameFormat(last, first, org))
+            sendMail('Sync: Duplicate phone number detected', 'Duplicate number (' + number + ') on ' + utilNameFormat(last, first, org))
             continue
         }
         xcapUniqueNumbers.push(number)

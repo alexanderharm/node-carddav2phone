@@ -22,6 +22,14 @@
         // strip your area code from resulting number
         "stripAreaCode": false
     },
+    "mail": {
+        "server": "smtp.example.com",
+        "port": 587,
+        "from": "info@example.com",
+        "to": "alert@example.com",
+        "username": "info@example.com",
+        "password": "supersecretkey"
+    },
     "fritzbox": {
         // IP or FQDN
         "url": "fritz.box",
