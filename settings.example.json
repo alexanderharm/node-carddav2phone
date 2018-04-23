@@ -38,6 +38,15 @@
         // success message Fritz!Box
         "message": "Das Telefonbuch der FRITZ!Box wurde wiederhergestellt."
     },
+    "ldap": {
+        // enter 'proto://host:port'
+        "url": "ldap://127.0.0.1:389",
+        // admin dn
+        "user": "uid=administrator,dc=example,dc=com",
+        "password": "supersecretkey",
+        // search base
+        "searchBase": "ou=contacts,dc=example,dc=com"
+    },
     "snom": {
         "xcap": {
             // the final path will be '<webroot>/<dir>/users/sip:<sipAccount>/<filename>'

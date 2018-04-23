@@ -1,6 +1,7 @@
 import {settings} from './utils'
 import {carddavClients, carddavUpdate, carddavVcards} from './carddav'
 import {fritzBoxHandler} from './fritzbox'
+import {ldapHandler} from './ldap'
 import {snomHandler} from './snom'
 import {Promise} from 'es6-promise'
 import { setTimeout, setInterval } from 'timers';
@@ -26,6 +27,7 @@ function phoneHandlers (): Promise<boolean>
     let vcards = carddavVcards()
     let handlers: Promise<any>[] = []
     if (settings.fritzbox) handlers.push(fritzBoxHandler(vcards))
+    if (settings.ldap) handlers.push(ldapHandler(vcards))
     if (settings.snom) handlers.push(snomHandler(vcards))
 
     return Promise.all(handlers).then((res) => Promise.resolve(true))

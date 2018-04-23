@@ -26,6 +26,7 @@
     "es6-promise": "^4.2.4",
     "fs-extra": "^5.0.0",
     "iconv-lite": "^0.4.19",
+    "ldapjs": "^1.0.2",
     "md5": "^2.2.1",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
