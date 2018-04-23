@@ -1,4 +1,12 @@
 "use strict";
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 var __values = (this && this.__values) || function (o) {
     var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
@@ -123,16 +131,14 @@ function ldapProcessCard(uid, last, first, org, tels) {
         }
         finally { if (e_3) throw e_3.error; }
     }
-    return {
-        uid: uid,
-        commonName: utils_1.utilNameFormat(last, first, org),
-        displayName: utils_1.utilNameFormat(last, first, org),
-        surname: last,
-        givenName: first,
-        homePhone: telephony.home,
-        mobile: telephony.mobile,
-        telephoneNumber: telephony.work
-    };
+    var telObj = {};
+    if (telephony.home.length > 0)
+        telObj.homePhone = telephony.home;
+    if (telephony.mobile.length > 0)
+        telObj.mobile = telephony.mobile;
+    if (telephony.work.length > 0)
+        telObj.telephoneNumber = telephony.work;
+    return __assign({ uid: uid, commonName: utils_1.utilNameFormat(last, first, org), displayName: utils_1.utilNameFormat(last, first, org), surname: last, givenName: first }, telObj);
     var e_2, _a, e_3, _b;
 }
 /**

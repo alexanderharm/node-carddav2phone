@@ -94,15 +94,18 @@ function ldapProcessCard(uid: string, last: string, first: string, org: string, 
         telephony[entry.type].push(entry.number)
     }
 
+    let telObj: any = {}
+    if (telephony.home.length > 0) telObj.homePhone = telephony.home
+    if (telephony.mobile.length > 0) telObj.mobile = telephony.mobile
+    if (telephony.work.length > 0) telObj.telephoneNumber = telephony.work
+
     return {
         uid: uid,
         commonName: utilNameFormat(last, first, org),
         displayName: utilNameFormat(last, first, org),
         surname: last,
         givenName: first,
-        homePhone: telephony.home,
-        mobile: telephony.mobile,
-        telephoneNumber: telephony.work
+        ...telObj
     }
 }
 
