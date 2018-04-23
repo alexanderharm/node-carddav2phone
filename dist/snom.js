@@ -142,6 +142,9 @@ function snomXcapProcessCard(uid, last, first, org, tels) {
             var phoneNumber = utils_1.utilNumberConvert(tel.valueOf());
             // determine type
             var type = utils_1.utilNumberGetType(tel.type, phoneNumber);
+            // store number if of type voice
+            if (!type)
+                continue;
             // check for duplicate phone number
             var number = utils_1.utilNumberSanitize(phoneNumber);
             if (xcapUniqueNumbers.indexOf(number) > -1) {
@@ -149,9 +152,8 @@ function snomXcapProcessCard(uid, last, first, org, tels) {
                 continue;
             }
             xcapUniqueNumbers.push(number);
-            // store number if of type voice
-            if (type)
-                entries.push({ type: type, number: number });
+            // store entry
+            entries.push({ type: type, number: number });
         }
     }
     catch (e_2_1) { e_2 = { error: e_2_1 }; }

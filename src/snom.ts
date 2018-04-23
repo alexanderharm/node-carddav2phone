@@ -111,6 +111,8 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
         let phoneNumber = utilNumberConvert(tel.valueOf())
         // determine type
         let type = utilNumberGetType(tel.type, phoneNumber)
+        // store number if of type voice
+        if (!type) continue
         // check for duplicate phone number
         let number = utilNumberSanitize(phoneNumber)
         if (xcapUniqueNumbers.indexOf(number) > -1) {
@@ -118,8 +120,8 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
             continue
         }
         xcapUniqueNumbers.push(number)
-        // store number if of type voice
-        if (type) entries.push({type: type, number: number})
+        // store entry
+        entries.push({type: type, number: number})
     }
   
     // if empty return nothing
