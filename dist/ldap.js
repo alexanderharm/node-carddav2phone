@@ -168,12 +168,14 @@ function ldapSearch(client) {
                 reject(err);
             });
             res.on('end', function (res) {
+                console.log('LDAP: search complete');
                 resolve(entries);
             });
         });
     });
 }
 function ldapDelete(client, entries) {
+    console.log('LDAP: attempting delete');
     var delOps = [];
     var _loop_1 = function (entry) {
         var p = new es6_promise_1.Promise(function (resolve, reject) {
@@ -198,16 +200,20 @@ function ldapDelete(client, entries) {
         }
         finally { if (e_4) throw e_4.error; }
     }
-    return es6_promise_1.Promise.all(delOps);
+    return es6_promise_1.Promise.all(delOps).then(function (res) {
+        console.log('LDAP: delete complete');
+        return res;
+    });
     var e_4, _a;
 }
 function ldapAdd(client, contacts) {
+    console.log('LDAP: attempting add');
     var addOps = [];
     var _loop_2 = function (contact) {
         var p = new es6_promise_1.Promise(function (resolve, reject) {
             client.add('uid=' + contact.uid + ',' + utils_1.settings.ldap.searchBase, contact, function (err) {
                 if (err)
-                    resolve(false);
+                    reject(err);
                 resolve(true);
             });
         });
@@ -226,7 +232,10 @@ function ldapAdd(client, contacts) {
         }
         finally { if (e_5) throw e_5.error; }
     }
-    return es6_promise_1.Promise.all(addOps);
+    return es6_promise_1.Promise.all(addOps).then(function (res) {
+        console.log('LDAP: add complete');
+        return res;
+    });
     var e_5, _a;
 }
 /**

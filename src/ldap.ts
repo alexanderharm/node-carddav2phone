@@ -140,6 +140,7 @@ function ldapSearch (client: any): Promise<string[]>
                 reject(err)
             })
             res.on('end', (res: any) => {
+                console.log('LDAP: search complete')
                 resolve(entries)
             })
         })
@@ -148,6 +149,7 @@ function ldapSearch (client: any): Promise<string[]>
 
 function ldapDelete (client: any, entries: String[]): Promise<any> 
 {
+    console.log('LDAP: attempting delete')
     let delOps: Promise<any>[] = []
     for (let entry of entries) 
     {
@@ -159,23 +161,30 @@ function ldapDelete (client: any, entries: String[]): Promise<any>
         })
         delOps.push(p)
     }
-    return Promise.all(delOps)
+    return Promise.all(delOps).then((res) => {
+        console.log('LDAP: delete complete')
+        return res
+    })
 }
 
 function ldapAdd (client: any, contacts: any[]): Promise<any> 
 {
+    console.log('LDAP: attempting add')
     let addOps: Promise<any>[] = []
     for (let contact of contacts) 
     {
         let p = new Promise((resolve, reject) => {
             client.add('uid=' + contact.uid + ',' + settings.ldap.searchBase, contact, (err: any) => {
-                if (err) resolve(false)
+                if (err) reject(err)
                 resolve(true)
             })
         })
         addOps.push(p)
     }
-    return Promise.all(addOps)
+    return Promise.all(addOps).then((res) => {
+        console.log('LDAP: add complete')
+        return res
+    })
 }
 
 /**
