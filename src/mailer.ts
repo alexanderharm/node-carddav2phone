@@ -4,6 +4,8 @@ const nodemailer = require('nodemailer')
 
 export function sendMail (subject: string, msg: string): any
 {
+    // check if mail is configured
+    if (!settings.mail) return
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
         host: settings.mail.server,

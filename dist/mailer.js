@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("./utils");
 var nodemailer = require('nodemailer');
 function sendMail(subject, msg) {
+    // check if mail is configured
+    if (!utils_1.settings.mail)
+        return;
     // create reusable transporter object using the default SMTP transport
     var transporter = nodemailer.createTransport({
         host: utils_1.settings.mail.server,
