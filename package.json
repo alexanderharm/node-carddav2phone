@@ -25,11 +25,11 @@
     "dav": "^1.7.8",
     "es6-promise": "^4.2.4",
     "fs-extra": "^5.0.0",
-    "iconv-lite": "^0.4.19",
+    "iconv-lite": "^0.4.21",
     "ldapjs": "^1.0.2",
     "md5": "^2.2.1",
     "nodemailer": "^4.6.4",
-    "request": "^2.83.0",
+    "request": "^2.85.0",
     "request-promise-native": "^1.0.5",
     "shallow-equal-object": "^1.1.1",
     "vcf": "^2.0.1",
@@ -38,12 +38,12 @@
   },
   "devDependencies": {
     "@types/comment-json": "^1.1.1",
-    "@types/fs-extra": "^5.0.1",
+    "@types/fs-extra": "^5.0.2",
     "@types/md5": "^2.1.32",
-    "@types/node": "^9.4.6",
+    "@types/node": "^9.6.7",
     "@types/xml": "^1.0.2",
     "@types/xml2js": "^0.4.2",
     "semver": "^5.5.0",
-    "typescript": "^2.7.2"
+    "typescript": "^2.8.3"
   }
 }
