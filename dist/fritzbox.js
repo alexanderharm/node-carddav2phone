@@ -72,7 +72,7 @@ function fritzBoxProcessCards(vcards) {
                 continue;
             // process card (pass 'Full Name' and telephone numbers)
             var names = vcf.get('n').valueOf().split(';');
-            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel);
+            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel, vcf.get('note'));
             if (entry)
                 entries.push(entry);
         }
@@ -103,7 +103,7 @@ function fritzBoxProcessCards(vcards) {
  * @param first
  * @param tels
  */
-function fritzBoxProcessCard(last, first, org, tels) {
+function fritzBoxProcessCard(last, first, org, tels, note) {
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     var entries = [];
     // test if tel is an array
@@ -139,6 +139,24 @@ function fritzBoxProcessCard(last, first, org, tels) {
     var typeOrder = utils_1.settings.fritzbox.order.length < 3 ? ['default'] : utils_1.settings.fritzbox.order;
     var i = 0;
     var telephony = [];
+    // add VIP, QuickDial, Vanity information
+    var category = 0;
+    if (/fb_vip/i.test(note))
+        category = 1;
+    var quickDial = '';
+    var quickDialNumber = '';
+    var quickDialRe = /fb_quickdial\s+([0-9]{2})\s*\(([+0-9])\)/i.exec(note);
+    if (quickDialRe) {
+        quickDial = quickDialRe[1];
+        quickDialNumber = utils_1.utilNumberSanitize(utils_1.utilNumberConvert(quickDialRe[2]));
+    }
+    var vanity = '';
+    var vanityNumber = '';
+    var vanityRe = /fb_vanity\s+([a-z]{2,8})\s*\(([+0-9])\)/i.exec(note);
+    if (vanityRe) {
+        vanity = vanityRe[1];
+        vanityNumber = utils_1.utilNumberSanitize(utils_1.utilNumberConvert(vanityRe[2]));
+    }
     try {
         // go by type order
         for (var typeOrder_1 = __values(typeOrder), typeOrder_1_1 = typeOrder_1.next(); !typeOrder_1_1.done; typeOrder_1_1 = typeOrder_1.next()) {
@@ -147,14 +165,19 @@ function fritzBoxProcessCard(last, first, org, tels) {
                 for (var entries_1 = __values(entries), entries_1_1 = entries_1.next(); !entries_1_1.done; entries_1_1 = entries_1.next()) {
                     var entry = entries_1_1.value;
                     if (type === 'default' || type === entry.type) {
+                        var attr = {
+                            id: i,
+                            prio: i == 0 ? '1' : '0',
+                            type: entry.type
+                        };
+                        if (entry.number === quickDialNumber)
+                            attr.quickdial = quickDial;
+                        if (entry.number === vanityNumber)
+                            attr.vanity = vanity;
                         telephony.push({
                             number: [
                                 {
-                                    _attr: {
-                                        id: i,
-                                        prio: i == 0 ? '1' : '0',
-                                        type: entry.type
-                                    }
+                                    _attr: attr
                                 },
                                 entry.number
                             ]
@@ -181,6 +204,9 @@ function fritzBoxProcessCard(last, first, org, tels) {
     }
     return {
         contact: [
+            {
+                category: category
+            },
             {
                 person: [{
                         realName: utils_1.utilNameFormat(last, first, org)

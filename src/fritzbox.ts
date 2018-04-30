@@ -45,7 +45,7 @@ function fritzBoxProcessCards (vcards: any[]): any
 
         // process card (pass 'Full Name' and telephone numbers)
         let names = vcf.get('n').valueOf().split(';')
-        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel)
+        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note'))
         if (entry) entries.push(entry)
     }
 
@@ -69,7 +69,7 @@ function fritzBoxProcessCards (vcards: any[]): any
  * @param first 
  * @param tels 
  */
-function fritzBoxProcessCard(last: string, first: string, org: string, tels: string|any[]): any
+function fritzBoxProcessCard(last: string, first: string, org: string, tels: string|any[], note: string): any
 {
   
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
@@ -99,6 +99,26 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
     let i = 0
     let telephony = []
 
+    // add VIP, QuickDial, Vanity information
+    let category = 0
+    if (/fb_vip/i.test(note)) category = 1
+    let quickDial = ''
+    let quickDialNumber = ''
+    let quickDialRe = /fb_quickdial\s+([0-9]{2})\s*\(([+0-9])\)/i.exec(note)
+    if (quickDialRe)
+    {
+        quickDial = quickDialRe[1]
+        quickDialNumber = utilNumberSanitize(utilNumberConvert(quickDialRe[2]))
+    }
+    let vanity = ''
+    let vanityNumber = ''
+    let vanityRe = /fb_vanity\s+([a-z]{2,8})\s*\(([+0-9])\)/i.exec(note)
+    if (vanityRe)
+    {
+        vanity = vanityRe[1]
+        vanityNumber = utilNumberSanitize(utilNumberConvert(vanityRe[2]))
+    }
+
     // go by type order
     for (let type of typeOrder)
     {
@@ -106,15 +126,19 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
         {
             if (type === 'default' || type === entry.type)
             {
+                let attr: any = {
+                    id: i,
+                    prio: i == 0 ? '1' : '0',
+                    type: entry.type
+                }
+
+                if (entry.number === quickDialNumber) attr.quickdial = quickDial
+                if (entry.number === vanityNumber) attr.vanity = vanity
+
                 telephony.push({
                     number: [
                         {
-                            _attr:
-                            {
-                                id: i,
-                                prio: i == 0 ? '1' : '0',
-                                type: entry.type
-                            }
+                            _attr: attr
                         },
                         entry.number
                     ]
@@ -123,10 +147,12 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
             }
         }
     }
-
     
     return {
         contact: [
+            {
+                category: category
+            },
             {
                 person: [{
                     realName: utilNameFormat(last, first, org)

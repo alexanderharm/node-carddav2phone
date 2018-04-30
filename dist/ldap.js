@@ -263,6 +263,7 @@ function ldapUpdate(contacts) {
     });
     // bind
     return ldapBind(client)
+        // search
         .then(function (res) { return ldapSearch(client); })
         .then(function (entries) {
         return ldapDelete(client, entries);

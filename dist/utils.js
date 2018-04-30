@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var json = require("comment-json");
 var fs = require("fs-extra");
@@ -54,9 +54,13 @@ exports.utilNameFormat = utilNameFormat;
 function utilNumberConvert(number) {
     // try to convert number into e164 format
     number = number
+        // remove leading and trailing whitespace
         .trim()
+        // replace leading '+' with zeros
         .replace(/^\+/, '00')
+        // remove everything but numbers
         .replace(/[^0-9]/g, '')
+        // replace leading zeros with '+'
         .replace(/^00/, '+');
     // if phone number is shorter than 8 digits and doesn't start with 0 add area code
     if (number.length < 8 && /^[^0]/.test(number))
