@@ -72,7 +72,7 @@ function fritzBoxProcessCards(vcards) {
                 continue;
             // process card (pass 'Full Name' and telephone numbers)
             var names = vcf.get('n').valueOf().split(';');
-            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel, vcf.get('note'));
+            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel, vcf.get('note').valueOf());
             if (entry)
                 entries.push(entry);
         }

@@ -45,7 +45,7 @@ function fritzBoxProcessCards (vcards: any[]): any
 
         // process card (pass 'Full Name' and telephone numbers)
         let names = vcf.get('n').valueOf().split(';')
-        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note'))
+        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note').valueOf())
         if (entry) entries.push(entry)
     }
 
