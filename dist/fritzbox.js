@@ -72,7 +72,7 @@ function fritzBoxProcessCards(vcards) {
                 continue;
             // process card (pass 'Full Name' and telephone numbers)
             var names = vcf.get('n').valueOf().split(';');
-            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel, vcf.get('note').valueOf());
+            var entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utils_1.utilOrgName(vcf), tel, vcf.get('note'));
             if (entry)
                 entries.push(entry);
         }
@@ -140,6 +140,7 @@ function fritzBoxProcessCard(last, first, org, tels, note) {
     var i = 0;
     var telephony = [];
     // add VIP, QuickDial, Vanity information
+    note = note ? note.valueOf() : '';
     var category = 0;
     if (/fb_vip/i.test(note))
         category = 1;

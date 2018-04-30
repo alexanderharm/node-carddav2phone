@@ -45,7 +45,7 @@ function fritzBoxProcessCards (vcards: any[]): any
 
         // process card (pass 'Full Name' and telephone numbers)
         let names = vcf.get('n').valueOf().split(';')
-        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note').valueOf())
+        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note'))
         if (entry) entries.push(entry)
     }
 
@@ -100,6 +100,7 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
     let telephony = []
 
     // add VIP, QuickDial, Vanity information
+    note = note ? note.valueOf() : ''
     let category = 0
     if (/fb_vip/i.test(note)) category = 1
     let quickDial = ''
