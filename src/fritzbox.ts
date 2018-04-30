@@ -105,7 +105,7 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
     if (/fb_vip/i.test(note)) category = 1
     let quickDial = ''
     let quickDialNumber = ''
-    let quickDialRe = /fb_quickdial\s+([0-9]{2})\s*\(([+0-9])\)/i.exec(note)
+    let quickDialRe = /fb_quickdial\s*([0-9]{2})\s*\(([+0-9][0-9\ ]+)\)/i.exec(note)
     if (quickDialRe)
     {
         quickDial = quickDialRe[1]
@@ -113,7 +113,7 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
     }
     let vanity = ''
     let vanityNumber = ''
-    let vanityRe = /fb_vanity\s+([a-z]{2,8})\s*\(([+0-9])\)/i.exec(note)
+    let vanityRe = /fb_vanity\s*([a-z]{2,8})\s*\(([+0-9][0-9\ ]+)\)/i.exec(note)
     if (vanityRe)
     {
         vanity = vanityRe[1]

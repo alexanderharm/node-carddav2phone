@@ -146,14 +146,14 @@ function fritzBoxProcessCard(last, first, org, tels, note) {
         category = 1;
     var quickDial = '';
     var quickDialNumber = '';
-    var quickDialRe = /fb_quickdial\s+([0-9]{2})\s*\(([+0-9])\)/i.exec(note);
+    var quickDialRe = /fb_quickdial\s*([0-9]{2})\s*\(([+0-9][0-9\ ]+)\)/i.exec(note);
     if (quickDialRe) {
         quickDial = quickDialRe[1];
         quickDialNumber = utils_1.utilNumberSanitize(utils_1.utilNumberConvert(quickDialRe[2]));
     }
     var vanity = '';
     var vanityNumber = '';
-    var vanityRe = /fb_vanity\s+([a-z]{2,8})\s*\(([+0-9])\)/i.exec(note);
+    var vanityRe = /fb_vanity\s*([a-z]{2,8})\s*\(([+0-9][0-9\ ]+)\)/i.exec(note);
     if (vanityRe) {
         vanity = vanityRe[1];
         vanityNumber = utils_1.utilNumberSanitize(utils_1.utilNumberConvert(vanityRe[2]));
