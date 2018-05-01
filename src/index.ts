@@ -39,7 +39,10 @@ function phoneHandlers (): Promise<boolean>
 
 carddavClients()
 .then((res) => phoneHandlers())
-.then((res) => setInterval(() => updateHandler(), settings.updateInterval * 60 * 1000))
+.then((res) => {
+    if (settings.updateInterval > 0) return setInterval(() => updateHandler(), settings.updateInterval * 60 * 1000)
+    return
+})
 .catch((err) => {
     console.log(err)
 })

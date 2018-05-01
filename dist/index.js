@@ -37,7 +37,11 @@ function phoneHandlers() {
  */
 carddav_1.carddavClients()
     .then(function (res) { return phoneHandlers(); })
-    .then(function (res) { return timers_1.setInterval(function () { return updateHandler(); }, utils_1.settings.updateInterval * 60 * 1000); })
+    .then(function (res) {
+    if (utils_1.settings.updateInterval > 0)
+        return timers_1.setInterval(function () { return updateHandler(); }, utils_1.settings.updateInterval * 60 * 1000);
+    return;
+})
     .catch(function (err) {
     console.log(err);
 });
