@@ -54,7 +54,7 @@ function snomXcapProcessCards (vcards: any[]): any
     for (let vcard of vcards)
     {
         // parse vCard
-        let vcf = new Vcf().parse(vcard.data.props.addressData)
+        let vcf = new Vcf().parse(vcard)
 
         // skip if no telephone number
         let tel = vcf.get('tel')

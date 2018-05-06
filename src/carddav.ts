@@ -82,7 +82,10 @@ function getVcards (account: any, client: any)
         // iterate address books
         for (let addressBook of res.addressBooks)
         {
-            vcards.push(...addressBook.objects)
+            for (let object of addressBook.objects)
+            {
+                vcards.push(object.data.props.addressData)
+            }
         }
         console.log(vcards)
         return vcards

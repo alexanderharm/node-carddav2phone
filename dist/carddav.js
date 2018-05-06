@@ -116,19 +116,31 @@ function getVcards(account, client) {
             // iterate address books
             for (var _a = __values(res.addressBooks), _b = _a.next(); !_b.done; _b = _a.next()) {
                 var addressBook = _b.value;
-                vcards.push.apply(vcards, __spread(addressBook.objects));
+                try {
+                    for (var _c = __values(addressBook.objects), _d = _c.next(); !_d.done; _d = _c.next()) {
+                        var object = _d.value;
+                        vcards.push(object.data.props.addressData);
+                    }
+                }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (_d && !_d.done && (_e = _c.return)) _e.call(_c);
+                    }
+                    finally { if (e_2) throw e_2.error; }
+                }
             }
         }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
         finally {
             try {
-                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                if (_b && !_b.done && (_f = _a.return)) _f.call(_a);
             }
-            finally { if (e_2) throw e_2.error; }
+            finally { if (e_3) throw e_3.error; }
         }
         console.log(vcards);
         return vcards;
-        var e_2, _c;
+        var e_3, _f, e_2, _e;
     })
         .catch(function (err) {
         console.log(err);

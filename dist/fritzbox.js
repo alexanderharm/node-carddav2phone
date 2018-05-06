@@ -65,7 +65,7 @@ function fritzBoxProcessCards(vcards) {
         for (var vcards_1 = __values(vcards), vcards_1_1 = vcards_1.next(); !vcards_1_1.done; vcards_1_1 = vcards_1.next()) {
             var vcard = vcards_1_1.value;
             // parse vCard
-            var vcf = new Vcf().parse(vcard.data.props.addressData);
+            var vcf = new Vcf().parse(vcard);
             // skip if no telephone number
             var tel = vcf.get('tel');
             if (typeof tel === 'undefined')
