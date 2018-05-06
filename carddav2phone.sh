@@ -26,15 +26,17 @@ fi
 # save today's date
 today=$(date +'%Y-%m-%d')
 
+# change dir
+cd "$(dirname "$0")" || exit 1
+
 # self update run once daily
-if [ ! -z "${git}" ]: then
+if [ ! -z "${git}" ]; then
 	echo "No git, no updates..."
-elif [ ! -f /tmp/.synoConnectVpnUpdate ] || [ "${today}" != "$(date -r /tmp/.synoConnectVpnUpdate +'%Y-%m-%d')" ]; then
+elif [ ! -f /tmp/.carddav2phoneUpdate ] || [ "${today}" != "$(date -r /tmp/.carddav2phoneUpdate +'%Y-%m-%d')" ]; then
 	echo "Checking for updates..."
 	# touch file to indicate update has run once
 	touch /tmp/.carddav2phoneUpdate
-	# change dir and update via git
-	cd "$(dirname "$0")" || exit 1
+	# update via git
 	$git fetch
 	commits=$($git rev-list HEAD...origin/master --count)
 	if [ $commits -gt 0 ]; then
@@ -53,7 +55,7 @@ else
 fi
 
 # run node app
-node index.js
+node dist/index.js
 
 # exit
 exit 0
