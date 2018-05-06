@@ -29,8 +29,9 @@ export function carddavRetrieve (): Promise<any[]>
 
     for (let account of settings.carddav.accounts)
     {
-        let accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username
-        let fname = __dirname + '/../account_' + accountname + '.json'
+        let accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') 
+        let username = account.username.replace(/[^\w-]/g, '_')
+        let fname = __dirname + '/../account_' + accountname + '_' + username + '.json'
         let xhr = new dav.transport.Basic(
             new dav.Credentials({
                 username: account.username,

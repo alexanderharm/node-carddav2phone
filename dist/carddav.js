@@ -55,8 +55,9 @@ function carddavRetrieve() {
     console.log('CardDAV: creating clients');
     var vcardPromises = [];
     var _loop_1 = function (account) {
-        var accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username;
-        var fname = __dirname + '/../account_' + accountname + '.json';
+        var accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_');
+        var username = account.username.replace(/[^\w-]/g, '_');
+        var fname = __dirname + '/../account_' + accountname + '_' + username + '.json';
         var xhr = new dav.transport.Basic(new dav.Credentials({
             username: account.username,
             password: account.password
