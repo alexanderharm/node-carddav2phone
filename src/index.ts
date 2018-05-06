@@ -1,5 +1,5 @@
 import {settings} from './utils'
-import {carddavClients, carddavVcards} from './carddav'
+import {carddavVcards, vcards} from './carddav'
 import {fritzBoxHandler} from './fritzbox'
 import {ldapHandler} from './ldap'
 import {snomHandler} from './snom'
@@ -11,7 +11,6 @@ import { setTimeout, setInterval } from 'timers';
  */
 function phoneHandlers (): Promise<boolean>
 {
-    let vcards = carddavVcards()
     let handlers: Promise<any>[] = []
     if (settings.fritzbox) handlers.push(fritzBoxHandler(vcards))
     if (settings.ldap) handlers.push(ldapHandler(vcards))
@@ -23,7 +22,7 @@ function phoneHandlers (): Promise<boolean>
 /**
  * create clients
  */
-carddavClients()
+carddavVcards()
 .then((res) => {
     if (res.indexOf(true) > -1)
     {

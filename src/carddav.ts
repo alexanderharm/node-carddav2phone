@@ -15,20 +15,21 @@ import {shallowEqual} from 'shallow-equal-object'
 //dav.debug.enabled = true
 
 /**
- * The clients
+ * vCards
  */
-var clients: any[] = []
+export var vcards: any[] = []
 
 /**
- * CardDAV: create client accounts
+ * CardDAV: create clients and retrieve vCards
  */
-export function carddavClients (): Promise<boolean[]>
+export function carddavVcards (): Promise<any[]>
 {
     console.log('CardDAV: creating clients')
-    let createAccounts: any[] = []
+    let vcardPromises: any[] = []
 
     for (let account of settings.carddav.accounts)
     {
+        let fname = __dirname + '/../account_' + account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username + '.json'
         let xhr = new dav.transport.Basic(
             new dav.Credentials({
                 username: account.username,
@@ -39,52 +40,54 @@ export function carddavClients (): Promise<boolean[]>
         let client = new dav.Client(xhr)
 
         // get contacts
-        let clientPromise = Promise.all([
-            client.createAccount({
-                accountType: 'carddav',
-                server: account.url,
-                loadCollections: true,
-                loadObjects: true 
-            }),
-            fs.readJson(__dirname + '/../account_' + account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '.json')
-            .catch((err) => {
-                console.log(err)
-                return {}
-            })
+        let vcardPromise = Promise.all([
+            getVcards(account, client),
+            getPrevVcards(fname)
         ])
         .then((res: any) => {
 
-            // store
-            clients.push(res[0].addressBooks)
+            if (res[0].length === 0) vcards.push(...res[1])
+            vcards.push(...res[0])
 
             // compare current and previous contacts
-            if (shallowEqual(res[0].addressBooks, res[1]))
-            {
-                return false
-            }
+            if (shallowEqual(res[0], res[1])) return false
             // write output to file
-            return fs.writeJson(__dirname + '/../account_' + account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '.json', res[0].addressBooks) 
-            .then((res) => true)
+            return fs.writeJson(fname, res[0]) 
+            .then(() => true)
         })
-        createAccounts.push(clientPromise)
+        vcardPromises.push(vcardPromise)
     }
-    return Promise.all(createAccounts)
+    return Promise.all(vcardPromises)
 }
-  
-/**
- * CardDAV: get vCards
- */
-export function carddavVcards (): any[]
+
+function getPrevVcards (accountname: string)
 {
-    let vcards = []
-    for (let client of clients)
-    {
+    return fs.readJson(accountname)
+    .catch((err) => {
+        console.log(err)
+        return []
+    })
+}
+
+function getVcards (account: any, client: any)
+{
+    let vcards: any[] = []
+    return client.createAccount({
+        accountType: 'carddav',
+        server: account.url,
+        loadCollections: true,
+        loadObjects: true 
+    })
+    .then((res: any) => {
         // iterate address books
-        for (let addressBook of client)
+        for (let addressBook of res.addressBooks)
         {
             vcards.push(...addressBook.objects)
         }
-
-    }
-    return vcards
+        return vcards
+    })
+    .catch((err: any) => {
+        console.log(err)
+        return []
+    })
 }

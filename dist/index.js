@@ -10,20 +10,19 @@ var es6_promise_1 = require("es6-promise");
  * handle all destination phone updates
  */
 function phoneHandlers() {
-    var vcards = carddav_1.carddavVcards();
     var handlers = [];
     if (utils_1.settings.fritzbox)
-        handlers.push(fritzbox_1.fritzBoxHandler(vcards));
+        handlers.push(fritzbox_1.fritzBoxHandler(carddav_1.vcards));
     if (utils_1.settings.ldap)
-        handlers.push(ldap_1.ldapHandler(vcards));
+        handlers.push(ldap_1.ldapHandler(carddav_1.vcards));
     if (utils_1.settings.snom)
-        handlers.push(snom_1.snomHandler(vcards));
+        handlers.push(snom_1.snomHandler(carddav_1.vcards));
     return es6_promise_1.Promise.all(handlers).then(function (res) { return es6_promise_1.Promise.resolve(true); });
 }
 /**
  * create clients
  */
-carddav_1.carddavClients()
+carddav_1.carddavVcards()
     .then(function (res) {
     if (res.indexOf(true) > -1) {
         console.log('CardDAV: updates available');
