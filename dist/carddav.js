@@ -138,7 +138,6 @@ function getVcards(account, client) {
             }
             finally { if (e_3) throw e_3.error; }
         }
-        console.log(vcards);
         return vcards;
         var e_3, _f, e_2, _e;
     })

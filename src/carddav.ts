@@ -87,7 +87,6 @@ function getVcards (account: any, client: any)
                 vcards.push(object.data.props.addressData)
             }
         }
-        console.log(vcards)
         return vcards
     })
     .catch((err: any) => {
