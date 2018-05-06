@@ -29,7 +29,8 @@ export function carddavRetrieve (): Promise<any[]>
 
     for (let account of settings.carddav.accounts)
     {
-        let fname = __dirname + '/../account_' + account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username + '.json'
+        let accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username
+        let fname = __dirname + '/../account_' + accountname + '.json'
         let xhr = new dav.transport.Basic(
             new dav.Credentials({
                 username: account.username,
@@ -46,12 +47,27 @@ export function carddavRetrieve (): Promise<any[]>
         ])
         .then((res: any) => {
 
-            if (res[0].length === 0) carddavVcards.push(...res[1])
+            if (res[0].length === 0 && res[1].length === 0)
+            {
+                console.log(accountname + ': no vcards')
+                return false
+            }
+            if (res[0].length === 0) {
+                console.log(accountname + ': no vcards downloaded, using stored ones')
+                carddavVcards.push(...res[1])
+                return false
+            }
+            
             carddavVcards.push(...res[0])
 
             // compare current and previous contacts
-            if (shallowEqual(res[0], res[1])) return false
+            if (shallowEqual(res[0], res[1])) 
+            {
+                console.log(accountname + ': no updates')
+                return false
+            }
             // write output to file
+            console.log(accountname + ': updates available')
             return fs.writeJson(fname, res[0]) 
             .then(() => true)
         })

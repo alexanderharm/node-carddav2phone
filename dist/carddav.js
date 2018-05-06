@@ -55,7 +55,8 @@ function carddavRetrieve() {
     console.log('CardDAV: creating clients');
     var vcardPromises = [];
     var _loop_1 = function (account) {
-        var fname = __dirname + '/../account_' + account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username + '.json';
+        var accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '_' + account.username;
+        var fname = __dirname + '/../account_' + accountname + '.json';
         var xhr = new dav.transport.Basic(new dav.Credentials({
             username: account.username,
             password: account.password
@@ -67,13 +68,23 @@ function carddavRetrieve() {
             getPrevVcards(fname)
         ])
             .then(function (res) {
-            if (res[0].length === 0)
+            if (res[0].length === 0 && res[1].length === 0) {
+                console.log(accountname + ': no vcards');
+                return false;
+            }
+            if (res[0].length === 0) {
+                console.log(accountname + ': no vcards downloaded, using stored ones');
                 exports.carddavVcards.push.apply(exports.carddavVcards, __spread(res[1]));
+                return false;
+            }
             exports.carddavVcards.push.apply(exports.carddavVcards, __spread(res[0]));
             // compare current and previous contacts
-            if (shallow_equal_object_1.shallowEqual(res[0], res[1]))
+            if (shallow_equal_object_1.shallowEqual(res[0], res[1])) {
+                console.log(accountname + ': no updates');
                 return false;
+            }
             // write output to file
+            console.log(accountname + ': updates available');
             return fs.writeJson(fname, res[0])
                 .then(function () { return true; });
         });
