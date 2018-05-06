@@ -51,6 +51,11 @@ else
 	git=""
 fi
 
+# If logfile passed and system is darwin then activate log rotation
+if [ "$(uname)" = "Darwin" ] && [ ! -z "$1" ]; then
+	newsyslog "$1"
+fi
+
 # save today's date
 today=$(date +'%Y-%m-%d')
 
