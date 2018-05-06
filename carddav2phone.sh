@@ -6,6 +6,34 @@ if [ $(id -u "$(whoami)") -ne 0 ]; then
 	exit 1
 fi
 
+# check if node is available
+if command -v /usr/bin/node > /dev/null; then
+	node="/usr/bin/node"
+elif command -v /usr/local/bin/node > /dev/null; then
+	node="/usr/local/bin/node"
+elif command -v /opt/bin/node > /dev/null; then
+	node="/opt/bin/node"
+elif which node > /dev/null; then
+	node="$(which node)"
+else
+	echo "node not found. Please install a working version of node."
+	exit 1
+fi
+
+# check if npm is available
+if command -v /usr/bin/npm > /dev/null; then
+	npm="/usr/bin/npm"
+elif command -v /usr/local/bin/npm > /dev/null; then
+	npm="/usr/local/bin/npm"
+elif command -v /opt/bin/npm > /dev/null; then
+	npm="/opt/bin/npm"
+elif which npm > /dev/null; then
+	npm="$(which npm)"
+else
+	echo "npm not found. Please install a working version of npm."
+	npm=""
+fi
+
 # check if git is available
 if command -v /usr/bin/git > /dev/null; then
 	git="/usr/bin/git"
@@ -30,8 +58,8 @@ today=$(date +'%Y-%m-%d')
 cd "$(dirname "$0")" || exit 1
 
 # self update run once daily
-if [ -z "${git}" ]; then
-	echo "No git, no updates..."
+if [ -z "${git}" ] || [ -z "${npm}" ]; then
+	echo "No git, no npm, no updates..."
 elif [ ! -f /tmp/.carddav2phoneUpdate ] || [ "${today}" != "$(date -r /tmp/.carddav2phoneUpdate +'%Y-%m-%d')" ]; then
 	echo "Checking for updates..."
 	# touch file to indicate update has run once
@@ -42,7 +70,7 @@ elif [ ! -f /tmp/.carddav2phoneUpdate ] || [ "${today}" != "$(date -r /tmp/.card
 	if [ $commits -gt 0 ]; then
 		echo "Found a new version, updating..."
 		$git pull --force
-		npm install
+		$npm install
 		echo "Executing new version..."
 		exec "$(pwd -P)/carddav2phone.sh"
 		# In case executing new fails
@@ -55,7 +83,7 @@ else
 fi
 
 # run node app
-node dist/index.js
+$node dist/index.js
 
 # exit
 exit 0
