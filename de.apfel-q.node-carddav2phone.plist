@@ -7,7 +7,7 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/bin/bash</string>
+    <string>/bin/bash</string>
     <string>/Users/sadmin/Documents/node-carddav2phone/carddav2phone.sh</string>
   </array>
 
