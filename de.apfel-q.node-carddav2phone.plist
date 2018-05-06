@@ -9,6 +9,7 @@
   <array>
     <string>/bin/bash</string>
     <string>/Users/sadmin/Documents/node-carddav2phone/carddav2phone.sh</string>
+    <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>
   </array>
 
   <key>Nice</key>
