@@ -7,18 +7,15 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/bin/node</string>
-    <string>/Users/sadmin/Documents/node-carddav2phone/dist/index.js</string>
+    <string>/usr/bin/bash</string>
+    <string>/Users/sadmin/Documents/node-carddav2phone/carddav2phone.sh</string>
   </array>
 
   <key>Nice</key>
   <integer>1</integer>
 
   <key>StartInterval</key>
-  <integer>120</integer>
-
-  <key>RunAtLoad</key>
-  <true/>
+  <integer>3600</integer>
 
   <key>StandardErrorPath</key>
   <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>

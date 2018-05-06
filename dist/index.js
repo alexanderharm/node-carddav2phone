@@ -6,18 +6,6 @@ var fritzbox_1 = require("./fritzbox");
 var ldap_1 = require("./ldap");
 var snom_1 = require("./snom");
 var es6_promise_1 = require("es6-promise");
-var timers_1 = require("timers");
-/**
- * handles periodic updates
- */
-function updateHandler() {
-    return carddav_1.carddavUpdate()
-        .then(function (res) {
-        if (!res)
-            return es6_promise_1.Promise.resolve(false);
-        return phoneHandlers();
-    });
-}
 /**
  * handle all destination phone updates
  */
@@ -36,11 +24,13 @@ function phoneHandlers() {
  * create clients
  */
 carddav_1.carddavClients()
-    .then(function (res) { return phoneHandlers(); })
     .then(function (res) {
-    if (utils_1.settings.updateInterval > 0)
-        return timers_1.setInterval(function () { return updateHandler(); }, utils_1.settings.updateInterval * 60 * 1000);
-    return;
+    if (res.indexOf(true) > -1) {
+        console.log('CardDAV: updates available');
+        return phoneHandlers();
+    }
+    console.log('CardDAV: no updates available');
+    return true;
 })
     .catch(function (err) {
     console.log(err);

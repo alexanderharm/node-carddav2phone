@@ -1,23 +1,10 @@
 import {settings} from './utils'
-import {carddavClients, carddavUpdate, carddavVcards} from './carddav'
+import {carddavClients, carddavVcards} from './carddav'
 import {fritzBoxHandler} from './fritzbox'
 import {ldapHandler} from './ldap'
 import {snomHandler} from './snom'
 import {Promise} from 'es6-promise'
 import { setTimeout, setInterval } from 'timers';
-
-/**
- * handles periodic updates
- */
-function updateHandler (): Promise<boolean>
-{
-    return carddavUpdate()
-        .then((res) => {
-            if (!res) return Promise.resolve(false)
-            
-            return phoneHandlers()
-        })
-}
 
 /**
  * handle all destination phone updates
@@ -36,12 +23,15 @@ function phoneHandlers (): Promise<boolean>
 /**
  * create clients
  */
-
 carddavClients()
-.then((res) => phoneHandlers())
 .then((res) => {
-    if (settings.updateInterval > 0) return setInterval(() => updateHandler(), settings.updateInterval * 60 * 1000)
-    return
+    if (res.indexOf(true) > -1)
+    {
+        console.log('CardDAV: updates available')
+        return phoneHandlers()
+    }
+    console.log('CardDAV: no updates available')
+    return true
 })
 .catch((err) => {
     console.log(err)

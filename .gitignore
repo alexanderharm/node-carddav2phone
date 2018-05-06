@@ -62,3 +62,4 @@ users
 settings.json
 settings.??.json
 settings.???.json
+account_*

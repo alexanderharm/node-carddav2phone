@@ -1,7 +1,4 @@
 {
-    // update interval in minutes
-    // set to '0' if you only want to update infrequently/manually
-    "updateInterval": 5,
     // define your CardDAV accounts here
     "carddav": {
         "accounts": [
