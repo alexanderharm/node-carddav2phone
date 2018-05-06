@@ -17,12 +17,12 @@ import {shallowEqual} from 'shallow-equal-object'
 /**
  * vCards
  */
-export var vcards: any[] = []
+export var carddavVcards: any[] = []
 
 /**
  * CardDAV: create clients and retrieve vCards
  */
-export function carddavVcards (): Promise<any[]>
+export function carddavRetrieve (): Promise<any[]>
 {
     console.log('CardDAV: creating clients')
     let vcardPromises: any[] = []
@@ -46,8 +46,8 @@ export function carddavVcards (): Promise<any[]>
         ])
         .then((res: any) => {
 
-            if (res[0].length === 0) vcards.push(...res[1])
-            vcards.push(...res[0])
+            if (res[0].length === 0) carddavVcards.push(...res[1])
+            carddavVcards.push(...res[0])
 
             // compare current and previous contacts
             if (shallowEqual(res[0], res[1])) return false
@@ -84,6 +84,7 @@ function getVcards (account: any, client: any)
         {
             vcards.push(...addressBook.objects)
         }
+        console.log(vcards)
         return vcards
     })
     .catch((err: any) => {

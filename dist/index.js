@@ -12,17 +12,17 @@ var es6_promise_1 = require("es6-promise");
 function phoneHandlers() {
     var handlers = [];
     if (utils_1.settings.fritzbox)
-        handlers.push(fritzbox_1.fritzBoxHandler(carddav_1.vcards));
+        handlers.push(fritzbox_1.fritzBoxHandler(carddav_1.carddavVcards));
     if (utils_1.settings.ldap)
-        handlers.push(ldap_1.ldapHandler(carddav_1.vcards));
+        handlers.push(ldap_1.ldapHandler(carddav_1.carddavVcards));
     if (utils_1.settings.snom)
-        handlers.push(snom_1.snomHandler(carddav_1.vcards));
+        handlers.push(snom_1.snomHandler(carddav_1.carddavVcards));
     return es6_promise_1.Promise.all(handlers).then(function (res) { return es6_promise_1.Promise.resolve(true); });
 }
 /**
  * create clients
  */
-carddav_1.carddavVcards()
+carddav_1.carddavRetrieve()
     .then(function (res) {
     if (res.indexOf(true) > -1) {
         console.log('CardDAV: updates available');

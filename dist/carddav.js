@@ -47,11 +47,11 @@ var shallow_equal_object_1 = require("shallow-equal-object");
 /**
  * vCards
  */
-exports.vcards = [];
+exports.carddavVcards = [];
 /**
  * CardDAV: create clients and retrieve vCards
  */
-function carddavVcards() {
+function carddavRetrieve() {
     console.log('CardDAV: creating clients');
     var vcardPromises = [];
     var _loop_1 = function (account) {
@@ -68,8 +68,8 @@ function carddavVcards() {
         ])
             .then(function (res) {
             if (res[0].length === 0)
-                exports.vcards.push.apply(exports.vcards, __spread(res[1]));
-            exports.vcards.push.apply(exports.vcards, __spread(res[0]));
+                exports.carddavVcards.push.apply(exports.carddavVcards, __spread(res[1]));
+            exports.carddavVcards.push.apply(exports.carddavVcards, __spread(res[0]));
             // compare current and previous contacts
             if (shallow_equal_object_1.shallowEqual(res[0], res[1]))
                 return false;
@@ -95,7 +95,7 @@ function carddavVcards() {
     return es6_promise_1.Promise.all(vcardPromises);
     var e_1, _c;
 }
-exports.carddavVcards = carddavVcards;
+exports.carddavRetrieve = carddavRetrieve;
 function getPrevVcards(accountname) {
     return fs.readJson(accountname)
         .catch(function (err) {
@@ -126,6 +126,7 @@ function getVcards(account, client) {
             }
             finally { if (e_2) throw e_2.error; }
         }
+        console.log(vcards);
         return vcards;
         var e_2, _c;
     })
