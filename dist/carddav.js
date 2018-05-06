@@ -69,6 +69,10 @@ function carddavClients() {
                 loadObjects: true
             }),
             fs.readJson(__dirname + '/../account_' + account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') + '.json')
+                .catch(function (err) {
+                console.log(err);
+                return {};
+            })
         ])
             .then(function (res) {
             // store

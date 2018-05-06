@@ -30,7 +30,7 @@ today=$(date +'%Y-%m-%d')
 cd "$(dirname "$0")" || exit 1
 
 # self update run once daily
-if [ ! -z "${git}" ]; then
+if [ -z "${git}" ]; then
 	echo "No git, no updates..."
 elif [ ! -f /tmp/.carddav2phoneUpdate ] || [ "${today}" != "$(date -r /tmp/.carddav2phoneUpdate +'%Y-%m-%d')" ]; then
 	echo "Checking for updates..."
