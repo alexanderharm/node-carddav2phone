@@ -1,9 +1,16 @@
 {
     // define your CardDAV accounts here
     "carddav": {
+        // you can refer to your accounts by the order (1, 2, 3, ...) they are defined here
         "accounts": [
             {
                 "url": "https://contacts.icloud.com",
+                "username": "myusername",
+                // some providers with two factor auth ask you to generate an app specific key
+                "password": "supersecretkey"
+            },
+            {
+                "url": "https://nextcloud.example.com",
                 "username": "myusername",
                 // some providers with two factor auth ask you to generate an app specific key
                 "password": "supersecretkey"
@@ -34,25 +41,39 @@
         // Don't forget to adjust your Fritz!Box settings to allow login as user with password
         "username": "admin",
         "password": "supersecretkey",
-        "telephoneBookName": "Telefonbuch",
-        "telephoneBookId": 0,
-        // define an arbitrary order of 'first' and 'last' name
-        "name": ["first", "last"],
-        // define an arbitrary order of 'home', 'mobile' and 'work'
-        // defaults to order of vCard if empty
-        "order": ["home", "mobile", "work"],
         // success message Fritz!Box
-        "message": "Das Telefonbuch der FRITZ!Box wurde wiederhergestellt."
+        "message": "Das Telefonbuch der FRITZ!Box wurde wiederhergestellt.",
+        "telephoneBooks": [
+            {
+                "telephoneBookName": "Telefonbuch",
+                "telephoneBookId": 0,
+                // define an arbitrary order of 'first' and 'last' name
+                "name": ["first", "last"],
+                // define an arbitrary order of 'home', 'mobile' and 'work'
+                // defaults to order of vCard if empty
+                "order": ["home", "mobile", "work"],
+                // optionally sync only specific accounts (refered to by their order)
+                // you can also define a prefix per account (e. g. to use specific line)
+                "accounts": [
+                    {"account": 1},
+                    {"account": 2, "prefix": "*124#"}
+                ]
+            }
+        ]
     },
-    "ldap": {
-        // enter 'proto://host:port'
-        "url": "ldap://127.0.0.1:389",
-        // admin dn
-        "user": "uid=administrator,dc=example,dc=com",
-        "password": "supersecretkey",
-        // search base
-        "searchBase": "ou=contacts,dc=example,dc=com"
-    },
+    "ldap": [
+        {
+            // enter 'proto://host:port'
+            "url": "ldap://127.0.0.1:389",
+            // admin dn
+            "user": "uid=administrator,dc=example,dc=com",
+            "password": "supersecretkey",
+            // search base
+            "searchBase": "ou=contacts,dc=example,dc=com",
+            // optionally sync only specific accounts (refered to by their order)
+            "accounts": [{"account": 1}, {"account": 2}]
+        }
+    ],
     "snom": {
         "xcap": {
             // the final path will be '<webroot>/<dir>/users/sip:<sipAccount>/<filename>'
@@ -60,14 +81,17 @@
             "dir": "",
             "filename": "snom_xcap.xml",
             "sipAccounts": [
-                "snomd315buro@fritz.box",
-                "snomd315pc@fritz.box"
-            ],
-            // define an arbitrary order of 'first' and 'last' name
-            "name": ["first", "last"],
-            // define an arbitrary order of 'home', 'mobile' and 'work'
-            // defaults to order of vCard if empty
-            "order": ["home", "mobile", "work"]
+                {
+                    "username": "snomd315buro@fritz.box",
+                    // define an arbitrary order of 'first' and 'last' name
+                    "name": ["first", "last"],
+                    // define an arbitrary order of 'home', 'mobile' and 'work'
+                    // defaults to order of vCard if empty
+                    "order": ["home", "mobile", "work"],
+                    // optionally sync only specific accounts (refered to by their order)
+                    "accounts": [{"account": 1}, {"account": 2}]
+                }
+            ]
         }
     }
 }

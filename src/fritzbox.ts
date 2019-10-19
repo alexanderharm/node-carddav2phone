@@ -8,15 +8,23 @@ import xml = require('xml')
 
 /**
  * handler for Fritz!Box
- * @param vcards 
+ * @param accountsVcards 
  */
-export function fritzBoxHandler (vcards: any[]): Promise<boolean>
+export function fritzBoxHandler (accountsVcards: any): Promise<boolean>
 {
     console.log('Fritz!Box: start')
 
-    // convert vCards to Fritz!Box XML
-    let data = <string>xml(fritzBoxProcessCards(vcards), { declaration: true })
-    return fritzBoxUpdate(data)
+    let fritzBoxPromises = Promise.resolve(true)
+
+    // loop over all telephone books
+    for (let i = 0; i < settings.fritzbox.telephoneBooks.length; i++)
+    {
+        // convert vCards to Fritz!Box XML
+        let data = <string>xml(fritzBoxProcessCards(settings.fritzbox.telephoneBooks[i], accountsVcards), { declaration: true })
+        fritzBoxPromises = fritzBoxPromises.then(() => fritzBoxUpdate(data))
+    }
+
+    return fritzBoxPromises
         .catch((err) => {
             console.log('Fritz!Box: oops something went wrong')
             console.log(err)
@@ -26,27 +34,49 @@ export function fritzBoxHandler (vcards: any[]): Promise<boolean>
 
 /**
  * Fritz!Box: process vCards
- * @param vcards 
+ * @param telephoneBook
+ * @param accountsVcards 
  */
-function fritzBoxProcessCards (vcards: any[]): any
+function fritzBoxProcessCards (telephoneBook: any, accountsVcards: any): any
 {
     // all entries
     let entries: any[] = []
 
-    // iterate all vCards of the collection
-    for (let vcard of vcards)
+    // determine which vCards from which accounts are needed
+    let accounts: any[] = []
+    if ("accounts" in telephoneBook)
     {
-        // parse vCard
-        let vcf = new Vcf().parse(vcard)
+        accounts = telephoneBook.accounts 
+    }
+    else
+    {
+        // default to all accounts
+        for (let account of Object.keys(accountsVcards))
+        {
+            accounts.push({"account": account})
+        }
+        
+    }
 
-        // skip if no telephone number
-        let tel = vcf.get('tel')
-        if (typeof tel === 'undefined') continue
+    // iterate over all accounts
+    for (let account of accounts)
+    {
+        // iterate all vCards of the collection
+        for (let vcard of accountsVcards[account.account])
+        {
+            // parse vCard
+            let vcf = new Vcf().parse(vcard)
 
-        // process card (pass 'Full Name' and telephone numbers)
-        let names = vcf.get('n').valueOf().split(';')
-        let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note'))
-        if (entry) entries.push(entry)
+            // skip if no telephone number
+            let tel = vcf.get('tel')
+            if (typeof tel === 'undefined') continue
+
+            // process card (pass 'Full Name' and telephone numbers)
+            let names = vcf.get('n').valueOf().split(';')
+            let prefix = ("prefix" in account) ? account.prefix : ""
+            let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note'), prefix)
+            if (entry) entries.push(entry)
+        }
     }
 
     return {
@@ -65,11 +95,12 @@ function fritzBoxProcessCards (vcards: any[]): any
   
 /**
  * process single vcard
- * @param last 
- * @param first 
- * @param tels 
+ * @param last
+ * @param first
+ * @param tels
+ * @param prefix
  */
-function fritzBoxProcessCard(last: string, first: string, org: string, tels: string|any[], note: string): any
+function fritzBoxProcessCard(last: string, first: string, org: string, tels: string|any[], note: string, prefix: string): any
 {
   
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
@@ -88,7 +119,7 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
         // determine type
         let type = utilNumberGetType(tel.type, phoneNumber)
         // store number if of type voice
-        if (type) entries.push({type: type, number: utilNumberSanitize(phoneNumber)})
+        if (type) entries.push({type: type, number: prefix + utilNumberSanitize(phoneNumber)})
     }
   
     // if empty return nothing

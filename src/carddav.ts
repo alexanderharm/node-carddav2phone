@@ -1,7 +1,7 @@
 import {settings} from './utils'
 import fs = require('fs-extra')
 /**
- * fix dav lib
+ * fix dav lib for iCloud
  */
 var davBefore = fs.readFileSync(__dirname + '/../node_modules/dav/dav.js', {encoding: 'utf8'})
 var davAfter = davBefore
@@ -17,7 +17,7 @@ import {shallowEqual} from 'shallow-equal-object'
 /**
  * vCards
  */
-export var carddavVcards: any[] = []
+export var carddavVcards: any = {}
 
 /**
  * CardDAV: create clients and retrieve vCards
@@ -27,8 +27,10 @@ export function carddavRetrieve (): Promise<any[]>
     console.log('CardDAV: creating clients')
     let vcardPromises: any[] = []
 
-    for (let account of settings.carddav.accounts)
+    let accounts: any[] = settings.carddav.accounts
+    for (let i = 0; i < accounts.length; i++)
     {
+        let account = accounts[i]
         let accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') 
         let username = account.username.replace(/[^\w-]/g, '_')
         let fname = __dirname + '/../account_' + accountname + '_' + username + '.json'
@@ -48,6 +50,8 @@ export function carddavRetrieve (): Promise<any[]>
         ])
         .then((res: any) => {
 
+            carddavVcards[i.toString()] = []
+
             if (res[0].length === 0 && res[1].length === 0)
             {
                 console.log(accountname + ': no vcards')
@@ -55,11 +59,11 @@ export function carddavRetrieve (): Promise<any[]>
             }
             if (res[0].length === 0) {
                 console.log(accountname + ': no vcards downloaded, using stored ones')
-                carddavVcards.push(...res[1])
+                carddavVcards[i.toString()].push(...res[1])
                 return false
             }
             
-            carddavVcards.push(...res[0])
+            carddavVcards[i.toString()].push(...res[0])
 
             // compare current and previous contacts
             if (shallowEqual(res[0], res[1])) 
