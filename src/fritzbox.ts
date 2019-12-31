@@ -1,27 +1,28 @@
-import {settings, utilOrgName, utilNameFormat, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
+import {utilNameFormat, utilNumberConvert, utilNumberSanitize, utilParseVcard, utilParseXml} from './utils'
 import iconv = require('iconv-lite')
 import md5 = require('md5')
 import {Promise} from 'es6-promise'
 var rp = require('request-promise-native')
-const Vcf = require('vcf')
 import xml = require('xml')
 
 /**
  * handler for Fritz!Box
- * @param accountsVcards 
+ * @param addressBooks
+ * @param settingsFB
  */
-export function fritzBoxHandler (accountsVcards: any): Promise<boolean>
+export function fritzBoxHandler (addressBooks: any, settingsFB: any): Promise<boolean>
 {
     console.log('Fritz!Box: start')
 
     let fritzBoxPromises = Promise.resolve(true)
 
     // loop over all telephone books
-    for (let i = 0; i < settings.fritzbox.telephoneBooks.length; i++)
+    for (let i = 0; i < settingsFB.telephoneBooks.length; i++)
     {
-        // convert vCards to Fritz!Box XML
-        let data = <string>xml(fritzBoxProcessCards(settings.fritzbox.telephoneBooks[i], accountsVcards), { declaration: true })
-        fritzBoxPromises = fritzBoxPromises.then(() => fritzBoxUpdate(data))
+        let telephoneBook = settingsFB.telephoneBooks[i]
+        // convert addressBooks to Fritz!Box XML
+        let data = <string>xml(fritzBoxProcessCards(telephoneBook, addressBooks), { declaration: true })
+        fritzBoxPromises = fritzBoxPromises.then(() => fritzBoxUpdate(data, telephoneBook.id, settingsFB))
     }
 
     return fritzBoxPromises
@@ -33,16 +34,19 @@ export function fritzBoxHandler (accountsVcards: any): Promise<boolean>
 }
 
 /**
- * Fritz!Box: process vCards
+ * Fritz!Box: process addressBooks
  * @param telephoneBook
- * @param accountsVcards 
+ * @param addressBooks
  */
-function fritzBoxProcessCards (telephoneBook: any, accountsVcards: any): any
+function fritzBoxProcessCards (telephoneBook: any, addressBooks: any): any
 {
     // all entries
     let entries: any[] = []
 
-    // determine which vCards from which accounts are needed
+    // prevent duplicate entries
+    let uniqueEntries: string[] = []
+
+    // determine which addressBooks from which accounts are needed
     let accounts: any[] = []
     if ("accounts" in telephoneBook)
     {
@@ -50,10 +54,10 @@ function fritzBoxProcessCards (telephoneBook: any, accountsVcards: any): any
     }
     else
     {
-        // default to all accounts
-        for (let account of Object.keys(accountsVcards))
+        // default to all addressBooks
+        for (let i = 0; i < addressBooks.length; i++)
         {
-            accounts.push({"account": account})
+            accounts.push({"account": i + 1})
         }
         
     }
@@ -61,20 +65,20 @@ function fritzBoxProcessCards (telephoneBook: any, accountsVcards: any): any
     // iterate over all accounts
     for (let account of accounts)
     {
-        // iterate all vCards of the collection
-        for (let vcard of accountsVcards[account.account])
+        // iterate all vCards of the address book
+        for (let vcard of addressBooks[account.account - 1])
         {
             // parse vCard
-            let vcf = new Vcf().parse(vcard)
+            let vcf = utilParseVcard(vcard)
 
             // skip if no telephone number
-            let tel = vcf.get('tel')
-            if (typeof tel === 'undefined') continue
+            if (vcf.tels.length === 0) continue
+
+            // check for dial prefix
+            let prefix = "prefix" in account ? account.prefix : ''
 
             // process card (pass 'Full Name' and telephone numbers)
-            let names = vcf.get('n').valueOf().split(';')
-            let prefix = ("prefix" in account) ? account.prefix : ""
-            let entry = fritzBoxProcessCard(names[0].trim(), names[1].trim(), utilOrgName(vcf), tel, vcf.get('note'), prefix)
+            let entry = fritzBoxProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries)
             if (entry) entries.push(entry)
         }
     }
@@ -84,7 +88,7 @@ function fritzBoxProcessCards (telephoneBook: any, accountsVcards: any): any
             phonebook: [
                 {
                     _attr: {
-                        name: settings.fritzbox.telephoneBookName
+                        name: telephoneBook.name
                     }
                 },
                 ...entries
@@ -94,49 +98,43 @@ function fritzBoxProcessCards (telephoneBook: any, accountsVcards: any): any
 }
   
 /**
- * process single vcard
- * @param last
- * @param first
- * @param tels
+ * process single vCard
+ * @param vcf
+ * @param fullname
+ * @param order
  * @param prefix
+ * @param duplicates
+ * @param uniqueEntries
  */
-function fritzBoxProcessCard(last: string, first: string, org: string, tels: string|any[], note: string, prefix: string): any
+function fritzBoxProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {
-  
+    // entry name
+    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+
+    // check for duplicates
+    if (!duplicates) {
+        if (uniqueEntries.indexOf(entryName) > -1) return
+        uniqueEntries.push(entryName)
+    }
+
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     let entries = []
-  
-    // test if tel is an array
-    if (!Array.isArray(tels)) tels = [ tels ]
 
     // iterate through all numbers
-    for (let tel of tels)
+    for (let tel of vcf.tels)
     {
-        // test if number
-        if (!utilNumberValid(tel.valueOf())) continue
-        // convert to PhoneNumber
-        let phoneNumber = utilNumberConvert(tel.valueOf())
-        // determine type
-        let type = utilNumberGetType(tel.type, phoneNumber)
-        // store number if of type voice
-        if (type) entries.push({type: type, number: prefix + utilNumberSanitize(phoneNumber)})
+        entries.push({type: tel.type, number: prefix === '' ? tel.number : (prefix + tel.number).replace('+', '00')})
     }
   
     // if empty return nothing
     if (entries.length === 0) return
-  
-    // process all types and numbers
-    let typeOrder = settings.fritzbox.order.length < 3 ? [ 'default' ] : settings.fritzbox.order
-    let i = 0
-    let telephony = []
 
     // add VIP, QuickDial, Vanity information
-    note = note ? note.valueOf() : ''
     let category = 0
-    if (/fb_vip/i.test(note)) category = 1
+    if (/fb_vip/i.test(vcf.note)) category = 1
     let quickDial = ''
     let quickDialNumber = ''
-    let quickDialRe = /fb_quickdial\s*([0-9]{2})\s*\(([+0-9][0-9\ ]+)\)/i.exec(note)
+    let quickDialRe = /fb_quickdial\s*([0-9]{2})\s*\(([+0-9][0-9\ ]+)\)/i.exec(vcf.note)
     if (quickDialRe)
     {
         quickDial = quickDialRe[1]
@@ -144,14 +142,17 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
     }
     let vanity = ''
     let vanityNumber = ''
-    let vanityRe = /fb_vanity\s*([a-z]{2,8})\s*\(([+0-9][0-9\ ]+)\)/i.exec(note)
+    let vanityRe = /fb_vanity\s*([a-z]{2,8})\s*\(([+0-9][0-9\ ]+)\)/i.exec(vcf.note)
     if (vanityRe)
     {
         vanity = vanityRe[1]
         vanityNumber = utilNumberSanitize(utilNumberConvert(vanityRe[2]))
     }
 
-    // go by type order
+    // process all types and numbers
+    let typeOrder = order.length !== 3 ? [ 'default' ] : order
+    let i = 0
+    let telephony = []
     for (let type of typeOrder)
     {
         for (let entry of entries) 
@@ -187,7 +188,7 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
             },
             {
                 person: [{
-                    realName: utilNameFormat(last, first, org)
+                    realName: entryName
                 }]
             },
             {
@@ -199,14 +200,15 @@ function fritzBoxProcessCard(last: string, first: string, org: string, tels: str
 
 /**
  * get SID from Fritz!Box
+ * @param settings
  */
-function fritzBoxSid (): Promise<string>
+function fritzBoxSid (settingsFB: any): Promise<string>
 {
     console.log('Fritz!Box: authenticate')
     return Promise.resolve()
         .then((res) => {
             let opt = {
-                uri: 'http://' + settings.fritzbox.url + '/login_sid.lua'
+                uri: 'http://' + settingsFB.url + '/login_sid.lua'
             }
             return rp(opt)
         })
@@ -220,11 +222,11 @@ function fritzBoxSid (): Promise<string>
             
             // build challenge response
             let challenge = res.SessionInfo.Challenge[0]
-            let response = challenge + '-' + md5(iconv.encode(challenge + '-' + settings.fritzbox.password, 'ucs2'))
+            let response = challenge + '-' + md5(iconv.encode(challenge + '-' + settingsFB.password, 'ucs2'))
             let opt = {
-                uri: 'http://' + settings.fritzbox.url + '/login_sid.lua',
+                uri: 'http://' + settingsFB.url + '/login_sid.lua',
                 qs: {
-                    username: settings.fritzbox.username,
+                    username: settingsFB.username,
                     response: response
                 }
             }
@@ -246,22 +248,24 @@ function fritzBoxSid (): Promise<string>
 
 /**
  * Fritz!Box: update
- * @param data 
+ * @param data
+ * @param telephoneBookId
+ * @param settings
  */
-function fritzBoxUpdate (data: string): Promise<boolean> {
+function fritzBoxUpdate (data: string, telephoneBookId: number, settingsFB: any): Promise<boolean> {
 
     // get SID from Fritz!Box
     console.log('Fritz!Box: attempting login')
-    return fritzBoxSid()
+    return fritzBoxSid(settingsFB)
     .then((sid) => {
         // update phonebook
         console.log('Fritz!Box: trying to update')
         let opt = {
             method: 'POST',
-            uri: 'http://' + settings.fritzbox.url + '/cgi-bin/firmwarecfg',
+            uri: 'http://' + settingsFB.url + '/cgi-bin/firmwarecfg',
             formData: {
                 sid: sid,
-                PhonebookId: settings.fritzbox.telephoneBookId,
+                PhonebookId: telephoneBookId,
                 PhonebookImportFile: {
                     value: data,
                     options: {
@@ -275,7 +279,7 @@ function fritzBoxUpdate (data: string): Promise<boolean> {
     })
     .then((res: string) => {
         // check for success
-        if (res.indexOf(settings.fritzbox.message) > -1)
+        if (res.indexOf(settingsFB.message) > -1)
         {
             console.log('Fritz!Box: update successful')
             return Promise.resolve(true)

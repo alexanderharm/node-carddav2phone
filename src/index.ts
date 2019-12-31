@@ -1,20 +1,23 @@
 import {settings} from './utils'
-import {carddavVcards, carddavRetrieve} from './carddav'
+import {carddavRetrieve} from './carddav'
 import {fritzBoxHandler} from './fritzbox'
 import {ldapHandler} from './ldap'
 import {snomHandler} from './snom'
+import {yealinkHandler} from './yealink'
 import {Promise} from 'es6-promise'
-import { setTimeout, setInterval } from 'timers';
 
 /**
  * handle all destination phone updates
+ * @param accountsVcards
+ * @param settings
  */
-function phoneHandlers (): Promise<boolean>
+function phoneHandlers (accountsVcards: any, settings: any): Promise<boolean>
 {
     let handlers: Promise<any>[] = []
-    if (settings.fritzbox) handlers.push(fritzBoxHandler(carddavVcards))
-    if (settings.ldap) handlers.push(ldapHandler(carddavVcards))
-    if (settings.snom) handlers.push(snomHandler(carddavVcards))
+    if (settings.fritzbox) handlers.push(fritzBoxHandler(accountsVcards, settings.fritzbox))
+    if (settings.ldap) handlers.push(ldapHandler(accountsVcards, settings.ldap))
+    if (settings.snom) handlers.push(snomHandler(accountsVcards, settings.snom))
+    if (settings.yealink) handlers.push(yealinkHandler(accountsVcards, settings.yealink))
 
     return Promise.all(handlers).then((res) => Promise.resolve(true))
 }
@@ -22,12 +25,12 @@ function phoneHandlers (): Promise<boolean>
 /**
  * create clients
  */
-carddavRetrieve()
+carddavRetrieve(settings)
 .then((res) => {
-    if (res.indexOf(true) > -1)
+    if (res[0].indexOf(true) > -1)
     {
         console.log('CardDAV: updates available')
-        return phoneHandlers()
+        return phoneHandlers(res[1], settings)
     }
     console.log('CardDAV: no updates available')
     return true

@@ -1,4 +1,15 @@
 "use strict";
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -27,10 +38,11 @@ exports.utilOrgName = utilOrgName;
  * @param last
  * @param first
  * @param org
+ * @param fullname
  */
-function utilNameFormat(last, first, org) {
+function utilNameFormat(last, first, org, fullname) {
     var name = '';
-    if (exports.settings.fritzbox.name.indexOf(first) > 0) {
+    if (fullname.indexOf(first) > 0) {
         if (last.length > 0)
             name += last;
         if (first.length > 0)
@@ -116,6 +128,54 @@ function utilNumberValid(phoneNumber) {
     return /[0-9]{4}$/.test(phoneNumber.replace(/[^0-9]/g, ''));
 }
 exports.utilNumberValid = utilNumberValid;
+/**
+ * get vCard content
+ * @param vcf
+ *
+ * @returns uid, names, org, tel, note
+ */
+function utilParseVcard(vcard) {
+    var e_1, _a;
+    // parse vCard
+    var vcf = new Vcf().parse(vcard);
+    // get uid
+    var uid = vcf.get('uid').valueOf();
+    // get array of names
+    var names = vcf.get('n').valueOf().split(';').map(function (name) { return name.trim(); });
+    // get org name
+    var org = vcf.get('org') ? vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim() : '';
+    // get array of telephone numbers
+    var tels = [];
+    var telstmp = vcf.get('tel') ? vcf.get('tel') : [];
+    if (!Array.isArray(telstmp))
+        telstmp = [telstmp];
+    try {
+        for (var telstmp_1 = __values(telstmp), telstmp_1_1 = telstmp_1.next(); !telstmp_1_1.done; telstmp_1_1 = telstmp_1.next()) {
+            var tel = telstmp_1_1.value;
+            // test if number
+            if (!utilNumberValid(tel.valueOf()))
+                continue;
+            // convert to number
+            var number = utilNumberConvert(tel.valueOf());
+            // determine type
+            var type = utilNumberGetType(tel.type, number);
+            // store number if of type voice
+            if (type)
+                tels.push({ type: type, number: utilNumberSanitize(number) });
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (telstmp_1_1 && !telstmp_1_1.done && (_a = telstmp_1.return)) _a.call(telstmp_1);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    // get note
+    var note = vcf.get('note') ? vcf.get('note').valueOf() : '';
+    return { uid: uid, names: names, org: org, tels: tels, note: note };
+}
+exports.utilParseVcard = utilParseVcard;
 /**
  * promisify parse xml
  * @param xml

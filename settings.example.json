@@ -2,21 +2,20 @@
     // define your CardDAV accounts here
     "carddav": {
         // you can refer to your accounts by the order (1, 2, 3, ...) they are defined here
+        // the order also determines the prefered source when ommitting duplicate entries (first occurence wins)
         "accounts": [
             {
+                // url of your CardDAV server
                 "url": "https://contacts.icloud.com",
+                // enter your username
                 "username": "myusername",
                 // some providers with two factor auth ask you to generate an app specific key
-                "password": "supersecretkey"
-            },
-            {
-                "url": "https://nextcloud.example.com",
-                "username": "myusername",
-                // some providers with two factor auth ask you to generate an app specific key
+                // pay attention to double quotes in the password, you would need to escape them using back slash (\")
                 "password": "supersecretkey"
             }
         ]
     },
+    // define some general telephony parameters here
     "telephony": {
         // your ISO country code
         "countryCode": "DE",
@@ -27,12 +26,14 @@
         // strip your area code from resulting number
         "stripAreaCode": false
     },
+    // setup mail for notifications (mainly for Snom XCAP)
     "mail": {
         "server": "smtp.example.com",
         "port": 587,
         "from": "info@example.com",
         "to": "alert@example.com",
         "username": "info@example.com",
+        // pay attention to double quotes in the password, you would need to escape them using back slash (\")
         "password": "supersecretkey"
     },
     "fritzbox": {
@@ -40,15 +41,16 @@
         "url": "fritz.box",
         // Don't forget to adjust your Fritz!Box settings to allow login as user with password
         "username": "admin",
+        // pay attention to double quotes in the password, you would need to escape them using back slash (\")
         "password": "supersecretkey",
         // success message Fritz!Box
         "message": "Das Telefonbuch der FRITZ!Box wurde wiederhergestellt.",
         "telephoneBooks": [
             {
-                "telephoneBookName": "Telefonbuch",
-                "telephoneBookId": 0,
+                "id": 0,
+                "name": "Telefonbuch",
                 // define an arbitrary order of 'first' and 'last' name
-                "name": ["first", "last"],
+                "fullname": ["first", "last"],
                 // define an arbitrary order of 'home', 'mobile' and 'work'
                 // defaults to order of vCard if empty
                 "order": ["home", "mobile", "work"],
@@ -57,41 +59,110 @@
                 "accounts": [
                     {"account": 1},
                     {"account": 2, "prefix": "*124#"}
-                ]
+                ],
+                // allow duplicate entries
+                "duplicates": false
             }
         ]
     },
-    "ldap": [
-        {
-            // enter 'proto://host:port'
-            "url": "ldap://127.0.0.1:389",
-            // admin dn
-            "user": "uid=administrator,dc=example,dc=com",
-            "password": "supersecretkey",
-            // search base
-            "searchBase": "ou=contacts,dc=example,dc=com",
-            // optionally sync only specific accounts (refered to by their order)
-            "accounts": [{"account": 1}, {"account": 2}]
-        }
-    ],
+    "ldap": {
+        "telephoneBooks": [
+            {
+                // enter 'proto://host:port'
+                "url": "ldap://127.0.0.1:389",
+                // admin dn
+                "user": "uid=administrator,dc=example,dc=com",
+                // pay attention to double quotes in the password, you would need to escape them using back slash (\")
+                "password": "supersecretkey",
+                // search base
+                "searchBase": "ou=contacts,dc=example,dc=com",
+                // define an arbitrary order of 'first' and 'last' name
+                "fullname": ["first", "last"],
+                // optionally sync only specific accounts (refered to by their order)
+                "accounts": [{"account": 1}, {"account": 2}],
+                // allow duplicate entries
+                "duplicates": false
+            }
+        ]
+    },
     "snom": {
         "xcap": {
-            // the final path will be '<webroot>/<dir>/users/sip:<sipAccount>/<filename>'
+            // the final path will be '<webroot>/<dir>/users/sip:<username>/<filename>'
             "webroot": ".",
             "dir": "",
-            "filename": "snom_xcap.xml",
-            "sipAccounts": [
+            "telephoneBooks": [
                 {
-                    "username": "snomd315buro@fritz.box",
+                    "filename": "snom_xcap_private.xml",
+                    // link telephone book to one or several sip usernames
+                    "usernames": ["telprivate1@fritz.box", "telprivate2@fritz.box"],
                     // define an arbitrary order of 'first' and 'last' name
-                    "name": ["first", "last"],
+                    "fullname": ["first", "last"],
                     // define an arbitrary order of 'home', 'mobile' and 'work'
                     // defaults to order of vCard if empty
                     "order": ["home", "mobile", "work"],
                     // optionally sync only specific accounts (refered to by their order)
-                    "accounts": [{"account": 1}, {"account": 2}]
+                    // you can also define a prefix per account (e. g. to use specific line)
+                    "accounts": [{"account": 1}],
+                    // allow duplicate entries
+                    "duplicates": false
+                },
+                {
+                    "filename": "snom_xcap_office.xml",
+                    // link telephone book to one or several sip usernames
+                    "usernames": ["teloffice@fritz.box"],
+                    // define an arbitrary order of 'first' and 'last' name
+                    "fullname": ["first", "last"],
+                    // define an arbitrary order of 'home', 'mobile' and 'work'
+                    // defaults to order of vCard if empty
+                    "order": ["work", "mobile", "home"],
+                    // optionally sync only specific accounts (refered to by their order)
+                    // you can also define a prefix per account (e. g. to use specific line)
+                    "accounts": [
+                        {"account": 1, "prefix": "0"},
+                        {"account": 2, "prefix": "0"}
+                    ],
+                    // allow duplicate entries
+                    "duplicates": false
                 }
             ]
         }
+    },
+    "yealink": {
+        // the final path will be '<webroot>/<dir>/<filename>'
+        "webroot": ".",
+        "dir": "",
+        "telephoneBooks": [
+            {
+                "name": "private",
+                "filename": "yealink_private.xml",
+                // define an arbitrary order of 'first' and 'last' name
+                "fullname": ["first", "last"],
+                // define an arbitrary order of 'home', 'mobile' and 'work'
+                // defaults to order of vCard if empty
+                "order": ["home", "mobile", "work"],
+                // optionally sync only specific accounts (refered to by their order)
+                // you can also define a prefix per account (e. g. to use specific line)
+                "accounts": [{"account": 1}],
+                // allow duplicate entries
+                "duplicates": false
+            },
+            {
+                "name": "office",
+                "filename": "yealink_office.xml",
+                // define an arbitrary order of 'first' and 'last' name
+                "fullname": ["first", "last"],
+                // define an arbitrary order of 'home', 'mobile' and 'work'
+                // defaults to order of vCard if empty
+                "order": ["work", "mobile", "home"],
+                // optionally sync only specific accounts (refered to by their order)
+                // you can also define a prefix per account (e. g. to use specific line)
+                "accounts": [
+                    {"account": 1, "prefix": "0"},
+                    {"account": 2, "prefix": "0"}
+                ],
+                // allow duplicate entries
+                "duplicates": false
+            }
+        ]
     }
 }

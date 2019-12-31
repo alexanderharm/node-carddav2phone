@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>de.apfel-q.node-carddav2phone</string>
+  <string>com.apfelq.node-carddav2phone</string>
 
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/sadmin/Documents/node-carddav2phone/carddav2phone.sh</string>
-    <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>
+    <string>/Users/username/Documents/node-carddav2phone/carddav2phone.sh</string>
+    <string>/Users/username/Library/Logs/com.apfelq.node-carddav2phone.log</string>
   </array>
 
   <key>Nice</key>
@@ -19,9 +19,9 @@
   <integer>3600</integer>
 
   <key>StandardErrorPath</key>
-  <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>
+  <string>/Users/username/Library/Logs/com.apfelq.node-carddav2phone.log</string>
 
   <key>StandardOutPath</key>
-  <string>/Users/sadmin/Library/Logs/de.apfel-q.node-carddav2phone.log</string>
+  <string>/Users/username/Library/Logs/com.apfelq.node-carddav2phone.log</string>
 </dict>
 </plist>

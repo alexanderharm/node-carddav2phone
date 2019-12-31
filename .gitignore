@@ -62,4 +62,7 @@ users
 settings.json
 settings.??.json
 settings.???.json
+settings.????.json
 account_*
+xcap
+yealink

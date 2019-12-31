@@ -9,9 +9,10 @@ A CardDAV to IP phones converter primarily intended for AVM Fritz!Box & Snom IP 
 * Destinations:
 
     * Snom phones via XCAP (limits apply)
+    * Yealink phones via IPPhoneDirectory
     * AVM Fritz!Box (tested with 7360, 7490)
     * LDAP (tested with OpenDirectory)
-    * In principle it can easily be extended to serve other vendors, e. g. Yealink.
+    * in principle it can easily be extended to serve other vendors.
 
 Refer to `settings.example.json` for all configuration options.
 
@@ -27,5 +28,5 @@ You can setup the Fritz!Box specific settings for VIP, quickdial and vanity in t
 
 ## Known issues
 
-There is a serious performance decrease with Snom phones rendering them more or less unusable with XCAP files having duplicate numbers. I filed a bug report with Snom.
+There is a serious performance decrease with Snom phones rendering them more or less unusable with XCAP files having duplicate numbers.
 The script now ignores duplicate phone numbers and it will mail you a warning about the concerned entries if you configure the mail section.

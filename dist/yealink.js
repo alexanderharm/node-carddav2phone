@@ -32,61 +32,46 @@ var __spread = (this && this.__spread) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("./utils");
-var mailer_1 = require("./mailer");
 var fs = require("fs-extra");
 var es6_promise_1 = require("es6-promise");
 var xml = require("xml");
 /**
- * handler for Snom
+ * handler for Yealink
  * @param addressBooks
- * @param settingsSnom
+ * @param settingsYealink
  */
-function snomHandler(addressBooks, settingsSnom) {
-    console.log('Snom: start');
-    var snomHandlers = [];
-    if (settingsSnom.xcap)
-        snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap));
-    return es6_promise_1.Promise.all(snomHandlers);
-}
-exports.snomHandler = snomHandler;
-/**
- * Snom XCAP: handler function
- * @param addressBooks
- * @param settingsSnomXcap
- */
-function snomXcapHandler(addressBooks, settingsSnomXcap) {
-    console.log('Snom XCAP: start');
-    var snomXcapPromises = es6_promise_1.Promise.resolve(true);
+function yealinkHandler(addressBooks, settingsYealink) {
+    console.log('Yealink: start');
+    var yealinkPromises = es6_promise_1.Promise.resolve(true);
     var _loop_1 = function (i) {
-        var telephoneBook = settingsSnomXcap.telephoneBooks[i];
-        // convert vCards to XCAP XML
-        var data = xml(snomXcapProcessCards(telephoneBook, addressBooks), { declaration: true });
-        snomXcapPromises = snomXcapPromises.then(function () { return snomXcapUpdate(data, telephoneBook, settingsSnomXcap); });
+        var telephoneBook = settingsYealink.telephoneBooks[i];
+        // convert vCards to  XML
+        var data = xml(yealinkProcessCards(telephoneBook, addressBooks), { declaration: true });
+        yealinkPromises = yealinkPromises.then(function () { return yealinkUpdate(data, telephoneBook, settingsYealink); });
     };
     // loop over all telephone books
-    for (var i = 0; i < settingsSnomXcap.telephoneBooks.length; i++) {
+    for (var i = 0; i < settingsYealink.telephoneBooks.length; i++) {
         _loop_1(i);
     }
-    return snomXcapPromises
+    return yealinkPromises
         .catch(function (err) {
-        console.log('Snom XCAP: oops something went wrong');
+        console.log('Yealink: oops something went wrong');
         console.log(err);
         return es6_promise_1.Promise.resolve(false);
     });
 }
+exports.yealinkHandler = yealinkHandler;
 /**
- * Snom XCAP: process address books
+ * Yealink : process address books
  * @param telephoneBook
  * @param addressBooks
  */
-function snomXcapProcessCards(telephoneBook, addressBooks) {
+function yealinkProcessCards(telephoneBook, addressBooks) {
     var e_1, _a, e_2, _b;
     // all entries
     var entries = [];
     // prevent duplicate entries
     var uniqueEntries = [];
-    // XCAP does not like duplicate numbers!
-    var xcapUniqueNumbers = [];
     // determine which vCards from which accounts are needed
     var accounts = [];
     if ("accounts" in telephoneBook) {
@@ -114,7 +99,7 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
                     // check for dial prefix
                     var prefix = "prefix" in account ? account.prefix : '';
                     // process card
-                    var entry = snomXcapProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries, xcapUniqueNumbers);
+                    var entry = yealinkProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries);
                     if (entry)
                         entries.push(entry);
                 }
@@ -135,37 +120,20 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
         }
         finally { if (e_1) throw e_1.error; }
     }
-    return {
-        'resource-lists': [
-            {
-                _attr: {
-                    'xmlns': 'urn:ietf:params:xml:ns:resource-lists',
-                    'xmlns:cp': 'counterpath:properties'
-                }
-            },
-            {
-                list: __spread([
-                    {
-                        _attr: {
-                            name: 'Contact List'
-                        }
-                    }
-                ], entries)
-            }
-        ]
-    };
+    var result = {};
+    result[telephoneBook.name + 'IPPhoneDirectory'] = __spread(entries);
+    return result;
 }
 /**
- * Snom XCAP: process single vcard
+ * Yealink : process single vcard
  * @param vcf
  * @param fullname
  * @param order
  * @param prefix
  * @param duplicates
  * @param uniqueEntries
- * @param xcapUniqueNumbers
  */
-function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries, xcapUniqueNumbers) {
+function yealinkProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b, e_5, _c;
     // entry name
     var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
@@ -181,15 +149,6 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
         // iterate through all numbers
         for (var _d = __values(vcf.tels), _e = _d.next(); !_e.done; _e = _d.next()) {
             var tel = _e.value;
-            // check for duplicate phone number
-            if (xcapUniqueNumbers.indexOf(tel.number) > -1) {
-                var errorMsg = 'Duplicate number (' + tel.number + ') on ' + entryName;
-                console.log('WARNING: ' + errorMsg);
-                mailer_1.sendMail('Sync: Duplicate phone number detected', errorMsg);
-                continue;
-            }
-            xcapUniqueNumbers.push(tel.number);
-            // store entry
             entries.push({ type: tel.type, number: prefix === '' ? tel.number : (prefix + tel.number).replace('+', '00') });
         }
     }
@@ -205,34 +164,17 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
         return;
     // process all types and numbers
     var typeOrder = order.length !== 3 ? ['default'] : order;
+    var i = 0;
     var telephony = [];
-    var count = {
-        work: 0,
-        home: 0,
-        mobile: 0
-    };
     try {
-        // go by type order
         for (var typeOrder_1 = __values(typeOrder), typeOrder_1_1 = typeOrder_1.next(); !typeOrder_1_1.done; typeOrder_1_1 = typeOrder_1.next()) {
             var type = typeOrder_1_1.value;
             try {
                 for (var entries_1 = (e_5 = void 0, __values(entries)), entries_1_1 = entries_1.next(); !entries_1_1.done; entries_1_1 = entries_1.next()) {
                     var entry = entries_1_1.value;
                     if (type === 'default' || type === entry.type) {
-                        var n = entry.type.replace('work', 'business') + '_number';
-                        if (count[entry.type] > 0)
-                            n += '#' + count[entry.type];
-                        telephony.push({
-                            'cp:prop': [
-                                {
-                                    _attr: {
-                                        name: n,
-                                        value: entry.number
-                                    }
-                                }
-                            ]
-                        });
-                        count[entry.type]++;
+                        telephony.push({ Telephone: entry.number });
+                        i++;
                     }
                 }
             }
@@ -253,88 +195,34 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
         finally { if (e_4) throw e_4.error; }
     }
     return {
-        entry: __spread([
+        DirectoryEntry: __spread([
             {
-                'display-name': entryName
-            },
-            {
-                'cp:prop': [
-                    {
-                        _attr: {
-                            name: 'entry_id',
-                            value: vcf.uid
-                        }
-                    }
-                ]
-            },
-            {
-                'cp:prop': [
-                    {
-                        _attr: {
-                            name: 'surname',
-                            value: vcf.names[0]
-                        }
-                    }
-                ]
-            },
-            {
-                'cp:prop': [
-                    {
-                        _attr: {
-                            name: 'given_name',
-                            value: vcf.names[1]
-                        }
-                    }
-                ]
-            },
-            {
-                'cp:prop': [
-                    {
-                        _attr: {
-                            name: 'company',
-                            value: vcf.org
-                        }
-                    }
-                ]
+                Name: entryName
             }
         ], telephony)
     };
 }
 /**
- * Snom XCAP: update
+ * Yealink : update
  * @param data
  * @param telephoneBook
- * @param settingsSnomXcap
+ * @param settingsYealink
  */
-function snomXcapUpdate(data, telephoneBook, settingsSnomXcap) {
-    var e_6, _a;
-    console.log('Snom XCAP: trying to update');
+function yealinkUpdate(data, telephoneBook, settingsYealink) {
+    console.log('Yealink : trying to update');
     var updates = [];
-    try {
-        for (var _b = __values(telephoneBook.usernames), _c = _b.next(); !_c.done; _c = _b.next()) {
-            var username = _c.value;
-            // build path
-            var path = settingsSnomXcap.webroot.trim();
-            if (path.slice(-1) !== '/')
-                path += '/';
-            path += settingsSnomXcap.dir.trim().replace(/^\//, '');
-            if (path.slice(-1) !== '/')
-                path += '/';
-            path += 'users/sip:' + username.trim() + '/';
-            path += telephoneBook.filename.trim();
-            updates.push(fs.outputFile(path, data, { encoding: 'utf8' }));
-        }
-    }
-    catch (e_6_1) { e_6 = { error: e_6_1 }; }
-    finally {
-        try {
-            if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-        }
-        finally { if (e_6) throw e_6.error; }
-    }
-    return es6_promise_1.Promise.all(updates)
+    // build path
+    var path = settingsYealink.webroot.trim();
+    if (path.slice(-1) !== '/')
+        path += '/';
+    path += settingsYealink.dir.trim().replace(/^\//, '');
+    if (path.slice(-1) !== '/')
+        path += '/';
+    path += telephoneBook.filename.trim();
+    return es6_promise_1.Promise.resolve(true)
+        .then(function (res) { return fs.outputFile(path, data, { encoding: 'utf8' }); })
         .then(function (res) {
-        console.log('Snom XCAP: update successful');
+        console.log('Yealink : update successful');
         return es6_promise_1.Promise.resolve(true);
     });
 }

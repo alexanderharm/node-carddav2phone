@@ -23,12 +23,13 @@ export function utilOrgName (vcf: any): string
  * format display name
  * @param last 
  * @param first 
- * @param org 
+ * @param org
+ * @param fullname
  */
-export function utilNameFormat (last: string, first: string, org: string): string
+export function utilNameFormat (last: string, first: string, org: string, fullname: string[]): string
 {
     let name = ''
-    if (settings.fritzbox.name.indexOf(first) > 0)
+    if (fullname.indexOf(first) > 0)
     {
         if (last.length > 0) name += last
         if (first.length > 0) name += ' ' + first
@@ -115,6 +116,47 @@ export function utilNumberSanitize (phoneNumber: PhoneNumber): string
 export function utilNumberValid (phoneNumber: string): boolean
 {
     return /[0-9]{4}$/.test(phoneNumber.replace(/[^0-9]/g, ''))
+}
+
+/**
+ * get vCard content
+ * @param vcf
+ * 
+ * @returns uid, names, org, tel, note
+ */
+export function utilParseVcard (vcard: any): any
+{
+    // parse vCard
+    let vcf = new Vcf().parse(vcard)
+
+    // get uid
+    let uid: string = vcf.get('uid').valueOf()
+
+    // get array of names
+    let names: string[] = vcf.get('n').valueOf().split(';').map((name: string) => name.trim())
+
+    // get org name
+    let org: string = vcf.get('org') ? vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim() : ''
+
+    // get array of telephone numbers
+    let tels: any[] = []
+    let telstmp: any[] = vcf.get('tel') ? vcf.get('tel') : []
+    if (!Array.isArray(telstmp)) telstmp = [ telstmp ]
+    for (let tel of telstmp) {
+        // test if number
+        if (!utilNumberValid(tel.valueOf())) continue
+        // convert to number
+        let number = utilNumberConvert(tel.valueOf())
+        // determine type
+        let type = utilNumberGetType(tel.type, number)
+        // store number if of type voice
+        if (type) tels.push({type: type, number: utilNumberSanitize(number)})
+    }
+
+    // get note
+    let note: string = vcf.get('note') ? vcf.get('note').valueOf() : ''
+
+    return {uid, names, org, tels, note}
 }
 
 /**

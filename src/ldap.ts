@@ -1,21 +1,28 @@
-import {settings, utilOrgName, utilNameFormat, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
+import {utilNameFormat, utilParseVcard} from './utils'
 const ldap = require('ldapjs')
 import {Promise} from 'es6-promise'
-const Vcf = require('vcf')
 
 /**
  * handler for LDAP
- * @param vcards 
+ * @param addressBooks
+ * @param settingsLdap
  */
-export function ldapHandler (vcards: any[]): Promise<boolean>
+export function ldapHandler (addressBooks: any, settingsLdap: any): Promise<boolean>
 {
     console.log('LDAP: start')
 
-    // process cards
-    let contacts = ldapProcessCards(vcards)
+    let ldapPromises = Promise.resolve(true)
 
-    // update LDAP
-    return ldapUpdate(contacts)
+    // loop over all telephone books
+    for (let i = 0; i < settingsLdap.telephoneBooks.length; i++)
+    {
+        let telephoneBook = settingsLdap.telephoneBooks[i]
+        // process address books
+        let contacts = ldapProcessCards(telephoneBook, addressBooks)
+        ldapPromises = ldapPromises.then(() => ldapUpdate(contacts, telephoneBook))
+    }
+
+    return ldapPromises
         .catch((err) => {
             console.log('LDAP: oops something went wrong')
             console.log(err)
@@ -24,28 +31,53 @@ export function ldapHandler (vcards: any[]): Promise<boolean>
 }
 
 /**
- * LDAP: process vCards
- * @param vcards 
+ * LDAP: process address books
+ * @param telephoneBook 
+ * @param addressBooks 
  */
-function ldapProcessCards (vcards: any[]): any
+function ldapProcessCards (telephoneBook: any, addressBooks: any): any
 {
     // all entries
     let entries: any[] = []
 
-    // iterate all vCards of the collection
-    for (let vcard of vcards)
+    // prevent duplicate entries
+    let uniqueEntries: string[] = []
+    
+    // determine which addressBooks from which accounts are needed
+    let accounts: any[] = []
+    if ("accounts" in telephoneBook)
     {
-        // parse vCard
-        let vcf = new Vcf().parse(vcard)
+        accounts = telephoneBook.accounts 
+    }
+    else
+    {
+        // default to all addressBooks
+        for (let i = 0; i < addressBooks.length; i++)
+        {
+            accounts.push({"account": i + 1})
+        }
+        
+    }
 
-        // skip if no telephone number
-        let tel = vcf.get('tel')
-        if (typeof tel === 'undefined') continue
+    // iterate over all accounts
+    for (let account of accounts)
+    {
+        // iterate all vCards of the address book
+        for (let vcard of addressBooks[account.account - 1])
+        {
+            // parse vCard
+            let vcf = utilParseVcard(vcard)
 
-        // process card (pass 'Full Name' and telephone numbers)
-        let names = vcf.get('n').valueOf().split(';')
-        let entry = ldapProcessCard(vcf.get('uid').valueOf(), names[0].trim(), names[1].trim(), utilOrgName(vcf), tel)
-        if (entry) entries.push(entry)
+           // skip if no telephone number
+           if (vcf.tels.length === 0) continue
+
+           // check for dial prefix
+           let prefix = "prefix" in account ? account.prefix : ''
+
+           // process card
+            let entry = ldapProcessCard(vcf, prefix, telephoneBook.fullname, telephoneBook.duplicates, uniqueEntries)
+            if (entry) entries.push(entry)
+        }
     }
 
     return entries
@@ -53,31 +85,30 @@ function ldapProcessCards (vcards: any[]): any
   
 /**
  * process single vcard
- * @param uid
- * @param last 
- * @param first 
- * @param tels 
+ * @param vcf
+ * @param prefix
+ * @param fullname
+  * @param duplicates
+ * @param uniqueEntries
  */
-function ldapProcessCard(uid: string, last: string, first: string, org: string, tels: string|any[]): any
+function ldapProcessCard(vcf: any, prefix: string, fullname: string[], duplicates: boolean, uniqueEntries: string[]): any
 {
-  
+    // entry name
+    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+
+    // check for duplicates
+    if (!duplicates) {
+        if (uniqueEntries.indexOf(entryName) > -1) return
+        uniqueEntries.push(entryName)
+    }
+
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     let entries = []
-  
-    // test if tel is an array
-    if (!Array.isArray(tels)) tels = [ tels ]
 
     // iterate through all numbers
-    for (let tel of tels)
+    for (let tel of vcf.tels)
     {
-        // test if number
-        if (!utilNumberValid(tel.valueOf())) continue
-        // convert to PhoneNumber
-        let phoneNumber = utilNumberConvert(tel.valueOf())
-        // determine type
-        let type = utilNumberGetType(tel.type, phoneNumber)
-        // store number if of type voice
-        if (type) entries.push({type: type, number: utilNumberSanitize(phoneNumber)})
+        entries.push({type: tel.type, number: prefix === '' ? tel.number : (prefix + tel.number).replace('+', '00')})
     }
   
     // if empty return nothing
@@ -95,37 +126,39 @@ function ldapProcessCard(uid: string, last: string, first: string, org: string, 
     }
 
     let contact: any = {}
-    contact.surname = last ? last : utilNameFormat(last, first, org)
-    contact.givenName = first ? first : utilNameFormat(last, first, org)
+    contact.surname = vcf.names[0]
+    contact.givenName = vcf.names[1]
     if (telephony.home.length > 0) contact.homePhone = telephony.home[0]
     if (telephony.mobile.length > 0) contact.mobile = telephony.mobile[0]
     if (telephony.work.length > 0) contact.telephoneNumber = telephony.work[0]
 
     return {
         objectClass: ['top', 'person', 'inetOrgPerson', 'organizationalPerson'],
-        uid: uid,
-        commonName: utilNameFormat(last, first, org),
-        displayName: utilNameFormat(last, first, org),
+        uid: vcf.uid,
+        commonName: entryName,
+        displayName: entryName,
         ...contact
     }
 }
 
 /**
  * LDAP: bind
- * @param client 
+ * @param client
+ * @param user
+ * @param password
  */
-function ldapBind (client: any): Promise<boolean> 
+function ldapBind (client: any, user: string, password: string): Promise<boolean> 
 {
     console.log('LDAP: attempting bind')
     return new Promise((resolve, reject) => {
-        client.bind(settings.ldap.user, settings.ldap.password, (err: any) => {
+        client.bind(user, password, (err: any) => {
             if (err) reject(err)
             resolve(true)
         })
     })
 }
 
-function ldapSearch (client: any): Promise<string[]> 
+function ldapSearch (client: any, searchBase: string): Promise<string[]> 
 {
     console.log('LDAP: attempting search')
     let opts = {
@@ -135,7 +168,7 @@ function ldapSearch (client: any): Promise<string[]>
     }
     let entries: string[] = []
     return new Promise((resolve, reject) => {
-        client.search(settings.ldap.searchBase, opts, (err: any, res: any) => {
+        client.search(searchBase, opts, (err: any, res: any) => {
             if (err) reject(err)
             res.on('searchEntry', (entry: any) => {
                 entries.push(entry.objectName)
@@ -171,7 +204,7 @@ function ldapDelete (client: any, entries: String[]): Promise<any>
     })
 }
 
-function ldapAdd (client: any, contacts: any[]): Promise<any> 
+function ldapAdd (client: any, contacts: any[], searchBase: string): Promise<any> 
 {
     console.log('LDAP: attempting add')
     let addOps: Promise<any>[] = []
@@ -179,7 +212,7 @@ function ldapAdd (client: any, contacts: any[]): Promise<any>
     {
         if (contact) {
             let p = new Promise((resolve, reject) => {
-                client.add('uid=' + contact.uid + ',' + settings.ldap.searchBase, contact, (err: any) => {
+                client.add('uid=' + contact.uid + ',' + searchBase, contact, (err: any) => {
                     if (err) reject(err)
                     resolve(true)
                 })
@@ -195,9 +228,11 @@ function ldapAdd (client: any, contacts: any[]): Promise<any>
 
 /**
  * LDAP: update
- * @param contacts 
+ * @param contacts
+ * @param telephoneBook
  */
-function ldapUpdate (contacts: any[]): Promise<boolean> {
+function ldapUpdate (contacts: any[], telephoneBook: any): Promise<boolean>
+{
 
     /**
      * since we don't know what exactly changed
@@ -205,21 +240,14 @@ function ldapUpdate (contacts: any[]): Promise<boolean> {
      */
 
     // create client
-    let client = ldap.createClient({
-        url: settings.ldap.url
-    })
+    let client = ldap.createClient({url: telephoneBook.url})
     
     // bind
-    return ldapBind(client)
+    return ldapBind(client, telephoneBook.user, telephoneBook.password)
     // search
-    .then((res: any) => ldapSearch(client))
-    .then((entries: string[]) => {
-        return ldapDelete(client, entries)
-    })
-    .then((res: any) => {
-        // add entries
-        return ldapAdd(client, contacts)
-    })
+    .then((res: any) => ldapSearch(client, telephoneBook.searchBase))
+    .then((entries: string[]) => ldapDelete(client, entries))
+    .then((res: any) => ldapAdd(client, contacts, telephoneBook.searchBase))
     .then((res: any) => {
         // check for success
         console.log('LDAP: update successful')

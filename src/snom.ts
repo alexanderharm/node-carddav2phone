@@ -1,39 +1,43 @@
-import {settings, utilOrgName, utilNameFormat, utilNumberConvert, utilNumberGetType, utilNumberSanitize, utilNumberValid, utilParseXml} from './utils'
+import {utilNameFormat, utilParseVcard} from './utils'
 import {sendMail} from './mailer'
 import fs = require('fs-extra')
 import {Promise} from 'es6-promise'
-const Vcf = require('vcf')
 import xml = require('xml')
-
-// XCAP does not like duplicate numbers!
-let xcapUniqueNumbers: string[]
 
 /**
  * handler for Snom
- * @param vcards 
+ * @param addressBooks
+ * @param settingsSnom 
  */
-export function snomHandler (vcards: any[]): Promise<boolean[]>
+export function snomHandler (addressBooks: any, settingsSnom: any): Promise<boolean[]>
 {
     console.log('Snom: start')
-    // reset unique numbers
-    xcapUniqueNumbers = []
     let snomHandlers: any[] = []
-    if (settings.snom.xcap) snomHandlers.push(snomXcapHandler(vcards))
+    if (settingsSnom.xcap) snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap))
     return Promise.all(snomHandlers)
 }
 
 /**
  * Snom XCAP: handler function
- * @param vcards 
+ * @param addressBooks
+ * @param settingsSnomXcap 
  */
-function snomXcapHandler (vcards: any[]): Promise<boolean>
+function snomXcapHandler (addressBooks: any, settingsSnomXcap: any): Promise<boolean>
 {
     console.log('Snom XCAP: start')
 
-    // convert vCards to XCAP XML
-    let data = <string>xml(snomXcapProcessCards(vcards), { declaration: true })
+    let snomXcapPromises = Promise.resolve(true)
 
-    return snomXcapUpdate(data)
+    // loop over all telephone books
+    for (let i = 0; i < settingsSnomXcap.telephoneBooks.length; i++)
+    {
+        let telephoneBook = settingsSnomXcap.telephoneBooks[i]
+        // convert vCards to XCAP XML
+        let data = <string>xml(snomXcapProcessCards(telephoneBook, addressBooks), { declaration: true })
+        snomXcapPromises = snomXcapPromises.then(() => snomXcapUpdate(data, telephoneBook, settingsSnomXcap))
+    }
+
+    return snomXcapPromises
         .catch((err) => {
             console.log('Snom XCAP: oops something went wrong')
             console.log(err)
@@ -42,28 +46,56 @@ function snomXcapHandler (vcards: any[]): Promise<boolean>
 }
   
 /**
- * Snom XCAP: process vcards
- * @param vcards 
+ * Snom XCAP: process address books
+ * @param telephoneBook
+ * @param addressBooks 
  */
-function snomXcapProcessCards (vcards: any[]): any
+function snomXcapProcessCards (telephoneBook: any, addressBooks: any): any
 {
     // all entries
     let entries: any[] = []
 
-    // iterate all vCards of the collection
-    for (let vcard of vcards)
+    // prevent duplicate entries
+    let uniqueEntries: string[] = []
+
+    // XCAP does not like duplicate numbers!
+    let xcapUniqueNumbers: string[] = []
+
+    // determine which vCards from which accounts are needed
+    let accounts: any[] = []
+    if ("accounts" in telephoneBook)
     {
-        // parse vCard
-        let vcf = new Vcf().parse(vcard)
+        accounts = telephoneBook.accounts 
+    }
+    else
+    {
+        // default to all address books
+        for (let i = 0; i < addressBooks.length; i++)
+        {
+            accounts.push({"account": i + 1})
+        }
+        
+    }
 
-        // skip if no telephone number
-        let tel = vcf.get('tel')
-        if (typeof tel === 'undefined') continue
+    // iterate over all accounts
+    for (let account of accounts)
+    {
+        // iterate all vCards of the address book
+        for (let vcard of addressBooks[account.account - 1])
+        {
+            // parse vCard
+            let vcf = utilParseVcard(vcard)
 
-        // process card (pass 'Full Name' and telephone numbers)
-        let names = vcf.get('n').valueOf().split(';')
-        let entry = snomXcapProcessCard(vcf.get('uid').valueOf(), names[0].trim(), names[1].trim(), utilOrgName(vcf), tel)
-        if (entry) entries.push(entry)
+            // skip if no telephone number
+            if (vcf.tels.length === 0) continue
+
+            // check for dial prefix
+            let prefix = "prefix" in account ? account.prefix : ''
+
+            // process card
+            let entry = snomXcapProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries, xcapUniqueNumbers)
+            if (entry) entries.push(entry)
+        }
     }
 
     return {
@@ -90,48 +122,48 @@ function snomXcapProcessCards (vcards: any[]): any
   
 /**
  * Snom XCAP: process single vcard
- * @param uid 
- * @param last 
- * @param first 
- * @param tel 
+ * @param vcf
+ * @param fullname
+ * @param order
+ * @param prefix
+ * @param duplicates
+ * @param uniqueEntries
+ * @param xcapUniqueNumbers
  */
-function snomXcapProcessCard(uid: string, last: string, first: string, org: string, tels: string|any[]): any
+function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[], xcapUniqueNumbers: string[]): any
 {
+    // entry name
+    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+
+    // check for duplicates
+    if (!duplicates) {
+        if (uniqueEntries.indexOf(entryName) > -1) return
+        uniqueEntries.push(entryName)
+    }
+
     // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
     let entries = []
-  
-    // test if tel is an array
-    if (!Array.isArray(tels)) tels = [ tels ]
 
     // iterate through all numbers
-    for (let tel of tels)
+    for (let tel of vcf.tels)
     {
-        // test if number
-        if (!utilNumberValid(tel.valueOf())) continue
-        // convert to PhoneNumber
-        let phoneNumber = utilNumberConvert(tel.valueOf())
-        // determine type
-        let type = utilNumberGetType(tel.type, phoneNumber)
-        // store number if of type voice
-        if (!type) continue
         // check for duplicate phone number
-        let number = utilNumberSanitize(phoneNumber)
-        if (xcapUniqueNumbers.indexOf(number) > -1) {
-            console.log('WARNING: Duplicate number (' + number + ') on ' + utilNameFormat(last, first, org))
-            sendMail('Sync: Duplicate phone number detected', 'Duplicate number (' + number + ') on ' + utilNameFormat(last, first, org))
+        if (xcapUniqueNumbers.indexOf(tel.number) > -1) {
+            let errorMsg: string = 'Duplicate number (' + tel.number + ') on ' + entryName
+            console.log('WARNING: ' + errorMsg)
+            sendMail('Sync: Duplicate phone number detected', errorMsg)
             continue
         }
-        xcapUniqueNumbers.push(number)
+        xcapUniqueNumbers.push(tel.number)
         // store entry
-        entries.push({type: type, number: number})
+        entries.push({type: tel.type, number: prefix === '' ? tel.number : (prefix + tel.number).replace('+', '00')})
     }
   
     // if empty return nothing
     if (entries.length === 0) return
   
     // process all types and numbers
-    let typeOrder = settings.snom.xcap.order.length < 3 ? [ 'default' ] : settings.snom.xcap.order
-    let i = 0
+    let typeOrder = order.length !== 3 ? [ 'default' ] : order
     let telephony = []
     let count: any = {
         work: 0,
@@ -166,14 +198,14 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
     return {
         entry: [
             {
-                'display-name': utilNameFormat(last, first, org)
+                'display-name': entryName
             },
             {
                 'cp:prop': [
                     {
                         _attr: {
                             name: 'entry_id',
-                            value: uid
+                            value: vcf.uid
                         }
                     }
                 ]
@@ -183,7 +215,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
                     {
                         _attr: {
                             name: 'surname',
-                            value: last
+                            value: vcf.names[0]
                         }
                     }
                 ]
@@ -193,7 +225,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
                     {
                         _attr: {
                             name: 'given_name',
-                            value: first
+                            value: vcf.names[1]
                         }
                     }
                 ]
@@ -203,7 +235,7 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
                     {
                         _attr: {
                             name: 'company',
-                            value: org
+                            value: vcf.org
                         }
                     }
                 ]
@@ -215,22 +247,24 @@ function snomXcapProcessCard(uid: string, last: string, first: string, org: stri
 
 /**
  * Snom XCAP: update
- * @param vcards 
+ * @param data
+ * @param telephoneBook
+ * @param settingsSnomXcap
  */
-function snomXcapUpdate (data: string): Promise<boolean>
+function snomXcapUpdate (data: string, telephoneBook: any, settingsSnomXcap: any): Promise<boolean>
 {
     console.log('Snom XCAP: trying to update')
 
     let updates = []
-    for (let account of settings.snom.xcap.sipAccounts)
+    for (let username of telephoneBook.usernames)
     {
         // build path
-        let path = settings.snom.xcap.webroot.trim()
+        let path = settingsSnomXcap.webroot.trim()
         if (path.slice(-1) !== '/') path += '/'
-        path += settings.snom.xcap.dir.trim().replace(/^\//, '')
+        path += settingsSnomXcap.dir.trim().replace(/^\//, '')
         if (path.slice(-1) !== '/') path += '/'
-        path += 'users/sip:' + account.trim() + '/'
-        path += settings.snom.xcap.filename.trim()
+        path += 'users/sip:' + username.trim() + '/'
+        path += telephoneBook.filename.trim()
         updates.push(fs.outputFile(path, data, {encoding: 'utf8'}))
     }
     return Promise.all(updates)

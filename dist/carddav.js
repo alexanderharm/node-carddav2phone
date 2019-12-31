@@ -19,21 +19,21 @@ var __spread = (this && this.__spread) || function () {
     for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
     return ar;
 };
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = require("./utils");
 var fs = require("fs-extra");
 /**
- * fix dav lib
+ * fix dav lib for iCloud
  */
 var davBefore = fs.readFileSync(__dirname + '/../node_modules/dav/dav.js', { encoding: 'utf8' });
 var davAfter = davBefore
@@ -45,16 +45,18 @@ var es6_promise_1 = require("es6-promise");
 var shallow_equal_object_1 = require("shallow-equal-object");
 //dav.debug.enabled = true
 /**
- * vCards
- */
-exports.carddavVcards = [];
-/**
  * CardDAV: create clients and retrieve vCards
+ * @param settings
  */
-function carddavRetrieve() {
+function carddavRetrieve(settings) {
     console.log('CardDAV: creating clients');
-    var vcardPromises = [];
-    var _loop_1 = function (account) {
+    // Results
+    var carddavResults = [];
+    // vCards
+    var carddavVcards = [];
+    var vcardPromises = es6_promise_1.Promise.resolve();
+    var _loop_1 = function (i) {
+        var account = settings.carddav.accounts[i];
         var accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_');
         var username = account.username.replace(/[^\w-]/g, '_');
         var fname = __dirname + '/../account_' + accountname + '_' + username + '.json';
@@ -69,49 +71,45 @@ function carddavRetrieve() {
             getPrevVcards(fname)
         ])
             .then(function (res) {
+            var _a, _b;
+            carddavVcards[i] = [];
             if (res[0].length === 0 && res[1].length === 0) {
                 console.log(accountname + ': no vcards');
+                carddavResults.push(false);
                 return false;
             }
             if (res[0].length === 0) {
                 console.log(accountname + ': no vcards downloaded, using stored ones');
-                exports.carddavVcards.push.apply(exports.carddavVcards, __spread(res[1]));
+                (_a = carddavVcards[i]).push.apply(_a, __spread(res[1]));
+                carddavResults.push(false);
                 return false;
             }
-            exports.carddavVcards.push.apply(exports.carddavVcards, __spread(res[0]));
+            (_b = carddavVcards[i]).push.apply(_b, __spread(res[0]));
             // compare current and previous contacts
             if (shallow_equal_object_1.shallowEqual(res[0], res[1])) {
                 console.log(accountname + ': no updates');
+                carddavResults.push(false);
                 return false;
             }
             // write output to file
             console.log(accountname + ': updates available');
+            carddavResults.push(true);
             return fs.writeJson(fname, res[0])
                 .then(function () { return true; });
         });
-        vcardPromises.push(vcardPromise);
+        vcardPromises = vcardPromises.then(function (res) { return vcardPromise; });
     };
-    try {
-        for (var _a = __values(utils_1.settings.carddav.accounts), _b = _a.next(); !_b.done; _b = _a.next()) {
-            var account = _b.value;
-            _loop_1(account);
-        }
+    for (var i = 0; i < settings.carddav.accounts.length; i++) {
+        _loop_1(i);
     }
-    catch (e_1_1) { e_1 = { error: e_1_1 }; }
-    finally {
-        try {
-            if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
-        }
-        finally { if (e_1) throw e_1.error; }
-    }
-    return es6_promise_1.Promise.all(vcardPromises);
-    var e_1, _c;
+    return vcardPromises.then(function (res) { return [carddavResults, carddavVcards]; });
 }
 exports.carddavRetrieve = carddavRetrieve;
 function getPrevVcards(accountname) {
     return fs.readJson(accountname)
         .catch(function (err) {
-        console.log(err);
+        if (err.code !== 'ENOENT')
+            console.log(err);
         return [];
     });
 }
@@ -124,34 +122,34 @@ function getVcards(account, client) {
         loadObjects: true
     })
         .then(function (res) {
+        var e_1, _a, e_2, _b;
         try {
             // iterate address books
-            for (var _a = __values(res.addressBooks), _b = _a.next(); !_b.done; _b = _a.next()) {
-                var addressBook = _b.value;
+            for (var _c = __values(res.addressBooks), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var addressBook = _d.value;
                 try {
-                    for (var _c = __values(addressBook.objects), _d = _c.next(); !_d.done; _d = _c.next()) {
-                        var object = _d.value;
+                    for (var _e = (e_2 = void 0, __values(addressBook.objects)), _f = _e.next(); !_f.done; _f = _e.next()) {
+                        var object = _f.value;
                         vcards.push(object.data.props.addressData);
                     }
                 }
                 catch (e_2_1) { e_2 = { error: e_2_1 }; }
                 finally {
                     try {
-                        if (_d && !_d.done && (_e = _c.return)) _e.call(_c);
+                        if (_f && !_f.done && (_b = _e.return)) _b.call(_e);
                     }
                     finally { if (e_2) throw e_2.error; }
                 }
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (_b && !_b.done && (_f = _a.return)) _f.call(_a);
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_1) throw e_1.error; }
         }
         return vcards;
-        var e_3, _f, e_2, _e;
     })
         .catch(function (err) {
         console.log(err);
