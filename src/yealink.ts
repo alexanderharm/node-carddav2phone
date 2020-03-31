@@ -113,7 +113,7 @@ function yealinkProcessCard(vcf: any, fullname: string[], order: string[], prefi
     // iterate through all numbers
     for (let tel of vcf.tels)
     {
-        entries.push({type: tel.type, number: prefix === '' ? tel.number : (prefix + tel.number).replace('+', '00')})
+        entries.push({type: tel.type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00')})
     }
   
     // if empty return nothing

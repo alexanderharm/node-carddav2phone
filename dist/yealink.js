@@ -149,7 +149,7 @@ function yealinkProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntr
         // iterate through all numbers
         for (var _d = __values(vcf.tels), _e = _d.next(); !_e.done; _e = _d.next()) {
             var tel = _e.value;
-            entries.push({ type: tel.type, number: prefix === '' ? tel.number : (prefix + tel.number).replace('+', '00') });
+            entries.push({ type: tel.type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00') });
         }
     }
     catch (e_3_1) { e_3 = { error: e_3_1 }; }
