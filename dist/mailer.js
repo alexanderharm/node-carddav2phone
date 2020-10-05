@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendMail = void 0;
 var utils_1 = require("./utils");
 var nodemailer = require('nodemailer');
 function sendMail(subject, msg) {

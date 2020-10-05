@@ -31,6 +31,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.yealinkHandler = void 0;
 var utils_1 = require("./utils");
 var fs = require("fs-extra");
 var es6_promise_1 = require("es6-promise");
@@ -173,7 +174,13 @@ function yealinkProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntr
                 for (var entries_1 = (e_5 = void 0, __values(entries)), entries_1_1 = entries_1.next(); !entries_1_1.done; entries_1_1 = entries_1.next()) {
                     var entry = entries_1_1.value;
                     if (type === 'default' || type === entry.type) {
-                        telephony.push({ Telephone: entry.number });
+                        telephony.push({ Telephone: [
+                                {
+                                    _attr: { label: entry.type }
+                                },
+                                entry.number
+                            ]
+                        });
                         i++;
                     }
                 }

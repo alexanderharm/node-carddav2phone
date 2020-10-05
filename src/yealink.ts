@@ -129,7 +129,13 @@ function yealinkProcessCard(vcf: any, fullname: string[], order: string[], prefi
         {
             if (type === 'default' || type === entry.type)
             {
-                telephony.push({Telephone: entry.number})
+                telephony.push({Telephone: [
+                        {
+                            _attr: {label: entry.type}
+                        },
+                        entry.number
+                    ]
+                })
                 i++
             }
         }

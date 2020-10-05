@@ -31,6 +31,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.snomHandler = void 0;
 var utils_1 = require("./utils");
 var mailer_1 = require("./mailer");
 var fs = require("fs-extra");

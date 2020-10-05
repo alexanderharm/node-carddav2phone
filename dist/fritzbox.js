@@ -31,6 +31,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.fritzBoxHandler = void 0;
 var utils_1 = require("./utils");
 var iconv = require("iconv-lite");
 var md5 = require("md5");

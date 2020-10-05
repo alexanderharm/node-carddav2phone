@@ -22,6 +22,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ldapHandler = void 0;
 var utils_1 = require("./utils");
 var ldap = require('ldapjs');
 var es6_promise_1 = require("es6-promise");
