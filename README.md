@@ -48,7 +48,7 @@ Setting up XCAP is more difficult than needed. So here are some guidelines:
     - open the `SIP`-tab and set the `Supported server type` to `bria`
     - save
     - now go to `Status > Settings` and download the `settings.cfg` (first option)
-    - edit the file and adjust/add the following entries (refer to the settings you made earlier):
+    - edit the file and adjust/add the following entries (refer to the settings you made earlier) then save and upload the file back into your snom phone via `Setup > Advanced > Update`
 
 ```
 xcap_tbook_sync_interval!: 3600
@@ -59,7 +59,6 @@ xcap_dir_doc_name!: <filename (as set in settings.json)>
 xcap_via_tls!: <on|off depending on whether you HTTPS or not>
 ```
 
-    - save and upload the file back into your snom phone via `Setup > Advanced > Update`
 
 - the snom phone should now synchronise the contacts
 - setup a cron job to run the script on a regular basis in order to keep your contacts updated
