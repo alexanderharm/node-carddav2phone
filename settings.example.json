@@ -125,6 +125,44 @@
                     "duplicates": false
                 }
             ]
+        },
+        "xml": {
+            // the final path will be '<webroot>/<dir>/<filename>'
+            "webroot": ".",
+            "dir": "",
+            "telephoneBooks": [
+                {
+                    "name": "private",
+                    "filename": "snom_private.xml",
+                    // define an arbitrary order of 'first' and 'last' name
+                    "fullname": ["first", "last"],
+                    // define an arbitrary order of 'home', 'mobile' and 'work'
+                    // defaults to order of vCard if empty
+                    "order": ["home", "mobile", "work"],
+                    // optionally sync only specific accounts (refered to by their order)
+                    // you can also define a prefix per account (e. g. to use specific line)
+                    "accounts": [{"account": 1}],
+                    // allow duplicate entries
+                    "duplicates": false
+                },
+                {
+                    "name": "office",
+                    "filename": "snom_office.xml",
+                    // define an arbitrary order of 'first' and 'last' name
+                    "fullname": ["first", "last"],
+                    // define an arbitrary order of 'home', 'mobile' and 'work'
+                    // defaults to order of vCard if empty
+                    "order": ["work", "mobile", "home"],
+                    // optionally sync only specific accounts (refered to by their order)
+                    // you can also define a prefix per account (e. g. to use specific line)
+                    "accounts": [
+                        {"account": 1, "prefix": "0"},
+                        {"account": 2, "prefix": "0"}
+                    ],
+                    // allow duplicate entries
+                    "duplicates": false
+                }
+            ]
         }
     },
     "yealink": {

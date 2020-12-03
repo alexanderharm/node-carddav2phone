@@ -1,4 +1,4 @@
-import {utilNameFormat, utilParseVcard} from './utils'
+import {utilNameFormat, utilNameSanitize, utilParseVcard} from './utils'
 import {sendMail} from './mailer'
 import fs = require('fs-extra')
 import {Promise} from 'es6-promise'
@@ -14,6 +14,7 @@ export function snomHandler (addressBooks: any, settingsSnom: any): Promise<bool
     console.log('Snom: start')
     let snomHandlers: any[] = []
     if (settingsSnom.xcap) snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap))
+    if (settingsSnom.xml) snomHandlers.push(snomXmlHandler(addressBooks, settingsSnom.xml))
     return Promise.all(snomHandlers)
 }
 
@@ -270,6 +271,278 @@ function snomXcapUpdate (data: string, telephoneBook: any, settingsSnomXcap: any
     return Promise.all(updates)
         .then((res) => {
             console.log('Snom XCAP: update successful')
+            return Promise.resolve(true)
+        })
+}
+
+/**
+ * handler for snom XML
+ * @param addressBooks
+ * @param settingsSnomXml 
+ */
+export function snomXmlHandler (addressBooks: any, settingsSnomXml: any): Promise<boolean>
+{
+    console.log('SnomXml: start')
+
+    let snomXmlPromises: Promise<boolean> = Promise.resolve(true)
+
+    // loop over all telephone books
+    for (let i = 0; i < settingsSnomXml.telephoneBooks.length; i++)
+    {
+        let telephoneBook = settingsSnomXml.telephoneBooks[i]
+        // convert vCards to  XML
+        let data = <string>xml(snomXmlProcessCards(telephoneBook, addressBooks), { declaration: true })
+        snomXmlPromises = snomXmlPromises.then(() => snomXmlUpdate(data, telephoneBook, settingsSnomXml))
+    }
+
+    return snomXmlPromises
+        .catch((err) => {
+            console.log('SnomXml: oops something went wrong')
+            console.log(err)
+            return Promise.resolve(false)
+        })
+}
+
+/**
+ * SnomXml : process address books
+ * @param telephoneBook
+ * @param addressBooks 
+ */
+function snomXmlProcessCards (telephoneBook: any, addressBooks: any): any
+{
+    // all entries
+    let entries: any[] = []
+
+    // prevent duplicate entries
+    let uniqueEntries: string[] = []
+
+    // determine which vCards from which accounts are needed
+    let accounts: any[] = []
+    if ("accounts" in telephoneBook)
+    {
+        accounts = telephoneBook.accounts 
+    }
+    else
+    {
+        // default to all address books
+        for (let i = 0; i < addressBooks.length; i++)
+        {
+            accounts.push({"account": i + 1})
+        }
+        
+    }
+
+    // replace work with business
+    let telephoneBookOrder = telephoneBook.order
+    if (telephoneBookOrder.indexOf('work') > -1) telephoneBookOrder[telephoneBookOrder.indexOf('work')] = 'business'
+
+    // iterate over all accounts
+    for (let account of accounts)
+    {
+        // iterate all vCards of the address book
+        for (let vcard of addressBooks[account.account - 1])
+        {
+            // parse vCard
+            let vcf = utilParseVcard(vcard)
+
+            // skip if no telephone number
+            if (vcf.tels.length === 0) continue
+
+            // check for dial prefix
+            let prefix = "prefix" in account ? account.prefix : ''
+
+            // process card
+            let entry = snomXmlProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries)
+
+            if (entry) entries.push(...entry)
+        }
+    }
+
+    return {
+        tbook: [
+            {_attr: {complete: 'true'}},
+            ...entries
+        ]
+    }
+}
+  
+/**
+ * SnomXml : process single vcard
+ * @param vcf
+ * @param fullname
+ * @param order
+ * @param prefix
+ * @param duplicates
+ * @param uniqueEntries
+ */
+function snomXmlProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
+{   
+    // entry name
+    let lastName = utilNameSanitize(vcf.names[0]) 
+    let firstName = utilNameSanitize(vcf.names[1])
+    let orgName = utilNameSanitize(vcf.org)
+    lastName = lastName === '' && firstName === '' ? orgName : lastName
+    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+
+    // check for duplicates
+    if (!duplicates) {
+        if (uniqueEntries.indexOf(entryName) > -1) return
+        uniqueEntries.push(entryName)
+    }
+
+    // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
+    let entries = []
+
+    // iterate through all numbers
+    for (let tel of vcf.tels)
+    {
+        let type = tel.type === 'work' ? 'business' : tel.type
+        entries.push({type: type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00')})
+    }
+  
+    // if empty return nothing
+    if (entries.length === 0) return
+
+    // process all types and numbers
+    let typeOrder = order.length !== 3 ? [ 'default' ] : order
+    let i = 0
+    let telephony = []
+
+    // depends on quantity of phone numbers
+    let referenceNumber = '0'
+    if (entries.length === 1)
+    {
+        for (let type of typeOrder)
+        {
+            for (let entry of entries) 
+            {
+                if (type === 'default' || type === entry.type)
+                {
+                    telephony.push({item: [
+                            {
+                                _attr: {context: 'active'}
+                            },
+                            {
+                                first_name: firstName
+                            },
+                            {
+                                last_name: lastName
+                            },
+                            {
+                                organization: orgName
+                            },
+                            {
+                                number: entry.number
+                            },
+                            {
+                                number_type: entry.type
+                            }
+                        ]
+                    })
+                    i++
+                }
+            }
+        }
+    }
+    else
+    {
+        for (let type of typeOrder)
+        {
+            for (let entry of entries) 
+            {
+                if (type === 'default' || type === entry.type)
+                {
+                    if (i === 0)
+                    {
+                        telephony.push({item: [
+                                {
+                                    _attr: {context: 'active'}
+                                },
+                                {
+                                    first_name: firstName
+                                },
+                                {
+                                    last_name: lastName
+                                },
+                                {
+                                    organization: orgName
+                                },
+                                {
+                                    number: entry.number
+                                }
+                            ]
+                        })
+                        referenceNumber = entry.number
+                        telephony.push({item: [
+                                {
+                                    _attr: {context: 'active'}
+                                },
+                                {
+                                    first_name: 'Member_Alias'
+                                },
+                                {
+                                    last_name: referenceNumber
+                                },
+                                {
+                                    number: entry.number
+                                },
+                                {
+                                    number_type: entry.type
+                                }
+                            ]
+                        })
+                    }
+                    else
+                    {
+                        telephony.push({item: [
+                                {
+                                    _attr: {context: 'active'}
+                                },
+                                {
+                                    first_name: 'Member_Alias'
+                                },
+                                {
+                                    last_name: referenceNumber
+                                },
+                                {
+                                    number: entry.number
+                                },
+                                {
+                                    number_type: entry.type
+                                }
+                            ]
+                        })
+                    }
+                    i++
+                }
+            }
+        }
+    }
+    return telephony
+}
+
+/**
+ * SnomXml : update
+ * @param data
+ * @param telephoneBook
+ * @param settingsSnomXml
+ */
+function snomXmlUpdate (data: string, telephoneBook: any, settingsSnomXml: any): Promise<boolean>
+{
+    console.log('SnomXml : trying to update')
+
+    let updates = []
+    // build path
+    let path = settingsSnomXml.webroot.trim()
+    if (path.slice(-1) !== '/') path += '/'
+    path += settingsSnomXml.dir.trim().replace(/^\//, '')
+    if (path.slice(-1) !== '/') path += '/'
+    path += telephoneBook.filename.trim()
+
+    return Promise.resolve(true)
+        .then((res) => fs.outputFile(path, data, {encoding: 'utf8'}))
+        .then((res) => {
+            console.log('SnomXml : update successful')
             return Promise.resolve(true)
         })
 }

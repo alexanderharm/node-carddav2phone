@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.utilParseXml = exports.utilParseVcard = exports.utilNumberValid = exports.utilNumberSanitize = exports.utilNumberGetType = exports.utilNumberConvert = exports.utilNameFormat = exports.utilOrgName = exports.settings = void 0;
+exports.utilParseXml = exports.utilParseVcard = exports.utilNumberValid = exports.utilNumberSanitize = exports.utilNumberGetType = exports.utilNumberConvert = exports.utilNameSanitize = exports.utilNameFormat = exports.utilOrgName = exports.settings = void 0;
 var json = require("comment-json");
 var fs = require("fs-extra");
 var awesome_phonenumber_1 = __importDefault(require("awesome-phonenumber"));
@@ -60,6 +60,14 @@ function utilNameFormat(last, first, org, fullname) {
     return name.replace(/\\/g, '').replace(/^ \- /g, '').replace(/  /g, '').trim();
 }
 exports.utilNameFormat = utilNameFormat;
+/**
+ * sanitize name
+ * @param name
+ */
+function utilNameSanitize(name) {
+    return name.replace(/\\/g, '').replace(/\;/g, '-').replace(/^ \- /g, '').replace(/ \- $/g, '').replace(/  /g, '').trim();
+}
+exports.utilNameSanitize = utilNameSanitize;
 /**
  * convert number to PhoneNumber
  * @param number

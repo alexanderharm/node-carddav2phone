@@ -31,7 +31,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snomHandler = void 0;
+exports.snomXmlHandler = exports.snomHandler = void 0;
 var utils_1 = require("./utils");
 var mailer_1 = require("./mailer");
 var fs = require("fs-extra");
@@ -47,6 +47,8 @@ function snomHandler(addressBooks, settingsSnom) {
     var snomHandlers = [];
     if (settingsSnom.xcap)
         snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap));
+    if (settingsSnom.xml)
+        snomHandlers.push(snomXmlHandler(addressBooks, settingsSnom.xml));
     return es6_promise_1.Promise.all(snomHandlers);
 }
 exports.snomHandler = snomHandler;
@@ -336,6 +338,314 @@ function snomXcapUpdate(data, telephoneBook, settingsSnomXcap) {
     return es6_promise_1.Promise.all(updates)
         .then(function (res) {
         console.log('Snom XCAP: update successful');
+        return es6_promise_1.Promise.resolve(true);
+    });
+}
+/**
+ * handler for snom XML
+ * @param addressBooks
+ * @param settingsSnomXml
+ */
+function snomXmlHandler(addressBooks, settingsSnomXml) {
+    console.log('SnomXml: start');
+    var snomXmlPromises = es6_promise_1.Promise.resolve(true);
+    var _loop_2 = function (i) {
+        var telephoneBook = settingsSnomXml.telephoneBooks[i];
+        // convert vCards to  XML
+        var data = xml(snomXmlProcessCards(telephoneBook, addressBooks), { declaration: true });
+        snomXmlPromises = snomXmlPromises.then(function () { return snomXmlUpdate(data, telephoneBook, settingsSnomXml); });
+    };
+    // loop over all telephone books
+    for (var i = 0; i < settingsSnomXml.telephoneBooks.length; i++) {
+        _loop_2(i);
+    }
+    return snomXmlPromises
+        .catch(function (err) {
+        console.log('SnomXml: oops something went wrong');
+        console.log(err);
+        return es6_promise_1.Promise.resolve(false);
+    });
+}
+exports.snomXmlHandler = snomXmlHandler;
+/**
+ * SnomXml : process address books
+ * @param telephoneBook
+ * @param addressBooks
+ */
+function snomXmlProcessCards(telephoneBook, addressBooks) {
+    var e_7, _a, e_8, _b;
+    // all entries
+    var entries = [];
+    // prevent duplicate entries
+    var uniqueEntries = [];
+    // determine which vCards from which accounts are needed
+    var accounts = [];
+    if ("accounts" in telephoneBook) {
+        accounts = telephoneBook.accounts;
+    }
+    else {
+        // default to all address books
+        for (var i = 0; i < addressBooks.length; i++) {
+            accounts.push({ "account": i + 1 });
+        }
+    }
+    // replace work with business
+    var telephoneBookOrder = telephoneBook.order;
+    if (telephoneBookOrder.indexOf('work') > -1)
+        telephoneBookOrder[telephoneBookOrder.indexOf('work')] = 'business';
+    try {
+        // iterate over all accounts
+        for (var accounts_2 = __values(accounts), accounts_2_1 = accounts_2.next(); !accounts_2_1.done; accounts_2_1 = accounts_2.next()) {
+            var account = accounts_2_1.value;
+            try {
+                // iterate all vCards of the address book
+                for (var _c = (e_8 = void 0, __values(addressBooks[account.account - 1])), _d = _c.next(); !_d.done; _d = _c.next()) {
+                    var vcard = _d.value;
+                    // parse vCard
+                    var vcf = utils_1.utilParseVcard(vcard);
+                    // skip if no telephone number
+                    if (vcf.tels.length === 0)
+                        continue;
+                    // check for dial prefix
+                    var prefix = "prefix" in account ? account.prefix : '';
+                    // process card
+                    var entry = snomXmlProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries);
+                    if (entry)
+                        entries.push.apply(entries, __spread(entry));
+                }
+            }
+            catch (e_8_1) { e_8 = { error: e_8_1 }; }
+            finally {
+                try {
+                    if (_d && !_d.done && (_b = _c.return)) _b.call(_c);
+                }
+                finally { if (e_8) throw e_8.error; }
+            }
+        }
+    }
+    catch (e_7_1) { e_7 = { error: e_7_1 }; }
+    finally {
+        try {
+            if (accounts_2_1 && !accounts_2_1.done && (_a = accounts_2.return)) _a.call(accounts_2);
+        }
+        finally { if (e_7) throw e_7.error; }
+    }
+    return {
+        tbook: __spread([
+            { _attr: { complete: 'true' } }
+        ], entries)
+    };
+}
+/**
+ * SnomXml : process single vcard
+ * @param vcf
+ * @param fullname
+ * @param order
+ * @param prefix
+ * @param duplicates
+ * @param uniqueEntries
+ */
+function snomXmlProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
+    var e_9, _a, e_10, _b, e_11, _c, e_12, _d, e_13, _e;
+    // entry name
+    var lastName = utils_1.utilNameSanitize(vcf.names[0]);
+    var firstName = utils_1.utilNameSanitize(vcf.names[1]);
+    var orgName = utils_1.utilNameSanitize(vcf.org);
+    lastName = lastName === '' && firstName === '' ? orgName : lastName;
+    var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    // check for duplicates
+    if (!duplicates) {
+        if (uniqueEntries.indexOf(entryName) > -1)
+            return;
+        uniqueEntries.push(entryName);
+    }
+    // object to hold different kinds of phone numbers, limit to home, work, mobile, default to home
+    var entries = [];
+    try {
+        // iterate through all numbers
+        for (var _f = __values(vcf.tels), _g = _f.next(); !_g.done; _g = _f.next()) {
+            var tel = _g.value;
+            var type = tel.type === 'work' ? 'business' : tel.type;
+            entries.push({ type: type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00') });
+        }
+    }
+    catch (e_9_1) { e_9 = { error: e_9_1 }; }
+    finally {
+        try {
+            if (_g && !_g.done && (_a = _f.return)) _a.call(_f);
+        }
+        finally { if (e_9) throw e_9.error; }
+    }
+    // if empty return nothing
+    if (entries.length === 0)
+        return;
+    // process all types and numbers
+    var typeOrder = order.length !== 3 ? ['default'] : order;
+    var i = 0;
+    var telephony = [];
+    // depends on quantity of phone numbers
+    var referenceNumber = '0';
+    if (entries.length === 1) {
+        try {
+            for (var typeOrder_2 = __values(typeOrder), typeOrder_2_1 = typeOrder_2.next(); !typeOrder_2_1.done; typeOrder_2_1 = typeOrder_2.next()) {
+                var type = typeOrder_2_1.value;
+                try {
+                    for (var entries_2 = (e_11 = void 0, __values(entries)), entries_2_1 = entries_2.next(); !entries_2_1.done; entries_2_1 = entries_2.next()) {
+                        var entry = entries_2_1.value;
+                        if (type === 'default' || type === entry.type) {
+                            telephony.push({ item: [
+                                    {
+                                        _attr: { context: 'active' }
+                                    },
+                                    {
+                                        first_name: firstName
+                                    },
+                                    {
+                                        last_name: lastName
+                                    },
+                                    {
+                                        organization: orgName
+                                    },
+                                    {
+                                        number: entry.number
+                                    },
+                                    {
+                                        number_type: entry.type
+                                    }
+                                ]
+                            });
+                            i++;
+                        }
+                    }
+                }
+                catch (e_11_1) { e_11 = { error: e_11_1 }; }
+                finally {
+                    try {
+                        if (entries_2_1 && !entries_2_1.done && (_c = entries_2.return)) _c.call(entries_2);
+                    }
+                    finally { if (e_11) throw e_11.error; }
+                }
+            }
+        }
+        catch (e_10_1) { e_10 = { error: e_10_1 }; }
+        finally {
+            try {
+                if (typeOrder_2_1 && !typeOrder_2_1.done && (_b = typeOrder_2.return)) _b.call(typeOrder_2);
+            }
+            finally { if (e_10) throw e_10.error; }
+        }
+    }
+    else {
+        try {
+            for (var typeOrder_3 = __values(typeOrder), typeOrder_3_1 = typeOrder_3.next(); !typeOrder_3_1.done; typeOrder_3_1 = typeOrder_3.next()) {
+                var type = typeOrder_3_1.value;
+                try {
+                    for (var entries_3 = (e_13 = void 0, __values(entries)), entries_3_1 = entries_3.next(); !entries_3_1.done; entries_3_1 = entries_3.next()) {
+                        var entry = entries_3_1.value;
+                        if (type === 'default' || type === entry.type) {
+                            if (i === 0) {
+                                telephony.push({ item: [
+                                        {
+                                            _attr: { context: 'active' }
+                                        },
+                                        {
+                                            first_name: firstName
+                                        },
+                                        {
+                                            last_name: lastName
+                                        },
+                                        {
+                                            organization: orgName
+                                        },
+                                        {
+                                            number: entry.number
+                                        }
+                                    ]
+                                });
+                                referenceNumber = entry.number;
+                                telephony.push({ item: [
+                                        {
+                                            _attr: { context: 'active' }
+                                        },
+                                        {
+                                            first_name: 'Member_Alias'
+                                        },
+                                        {
+                                            last_name: referenceNumber
+                                        },
+                                        {
+                                            number: entry.number
+                                        },
+                                        {
+                                            number_type: entry.type
+                                        }
+                                    ]
+                                });
+                            }
+                            else {
+                                telephony.push({ item: [
+                                        {
+                                            _attr: { context: 'active' }
+                                        },
+                                        {
+                                            first_name: 'Member_Alias'
+                                        },
+                                        {
+                                            last_name: referenceNumber
+                                        },
+                                        {
+                                            number: entry.number
+                                        },
+                                        {
+                                            number_type: entry.type
+                                        }
+                                    ]
+                                });
+                            }
+                            i++;
+                        }
+                    }
+                }
+                catch (e_13_1) { e_13 = { error: e_13_1 }; }
+                finally {
+                    try {
+                        if (entries_3_1 && !entries_3_1.done && (_e = entries_3.return)) _e.call(entries_3);
+                    }
+                    finally { if (e_13) throw e_13.error; }
+                }
+            }
+        }
+        catch (e_12_1) { e_12 = { error: e_12_1 }; }
+        finally {
+            try {
+                if (typeOrder_3_1 && !typeOrder_3_1.done && (_d = typeOrder_3.return)) _d.call(typeOrder_3);
+            }
+            finally { if (e_12) throw e_12.error; }
+        }
+    }
+    return telephony;
+}
+/**
+ * SnomXml : update
+ * @param data
+ * @param telephoneBook
+ * @param settingsSnomXml
+ */
+function snomXmlUpdate(data, telephoneBook, settingsSnomXml) {
+    console.log('SnomXml : trying to update');
+    var updates = [];
+    // build path
+    var path = settingsSnomXml.webroot.trim();
+    if (path.slice(-1) !== '/')
+        path += '/';
+    path += settingsSnomXml.dir.trim().replace(/^\//, '');
+    if (path.slice(-1) !== '/')
+        path += '/';
+    path += telephoneBook.filename.trim();
+    return es6_promise_1.Promise.resolve(true)
+        .then(function (res) { return fs.outputFile(path, data, { encoding: 'utf8' }); })
+        .then(function (res) {
+        console.log('SnomXml : update successful');
         return es6_promise_1.Promise.resolve(true);
     });
 }

@@ -9,6 +9,7 @@ A CardDAV to IP phones converter primarily intended for AVM Fritz!Box & Snom IP 
 * Destinations:
 
     * Snom phones via XCAP (limits apply)
+    * Snom phones via XML phone book
     * Yealink phones via IPPhoneDirectory
     * AVM Fritz!Box (tested with 7360, 7490)
     * LDAP (tested with OpenDirectory)
@@ -48,7 +49,7 @@ Setting up XCAP is more difficult than needed. So here are some guidelines:
     - open the `SIP`-tab and set the `Supported server type` to `bria`
     - save
     - now go to `Status > Settings` and download the `settings.cfg` (first option)
-    - edit the file and adjust/add the following entries (refer to the settings you made earlier) then save and upload the file back into your snom phone via `Setup > Advanced > Update`
+    - edit the file and adjust/add the following entries (refer to the settings you made earlier) then save and upload the file back into your snom phone via `Setup > Advanced > Update` (alternatively you can follow the instructions provided here <http://wiki.snom.com/FAQ/Can_I_set_single_phone_settings_via_HTTP_requests>)
 
 ```
 xcap_tbook_sync_interval!: 3600

@@ -1,6 +1,6 @@
 {
   "name": "node-carddav2phone",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A CardDAV to IP phones converter based on node.js",
   "main": "dist/index.js",
   "repository": {
@@ -37,7 +37,6 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@types/comment-json": "^1.1.1",
     "@types/fs-extra": "^9.0.1",
     "@types/md5": "^2.2.0",
     "@types/node": "^14.11.2",

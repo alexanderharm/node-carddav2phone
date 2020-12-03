@@ -45,6 +45,15 @@ export function utilNameFormat (last: string, first: string, org: string, fullna
 }
 
 /**
+ * sanitize name
+ * @param name 
+ */
+export function utilNameSanitize (name: string): string
+{
+    return name.replace(/\\/g, '').replace(/\;/g, '-').replace(/^ \- /g, '').replace(/ \- $/g, '').replace(/  /g, '').trim()
+}
+
+/**
  * convert number to PhoneNumber
  * @param number 
  */
