@@ -8,8 +8,8 @@ A CardDAV to IP phones converter primarily intended for AVM Fritz!Box & Snom IP 
 
 * Destinations:
 
-    * Snom phones via XCAP (limits apply)
-    * Snom phones via XML phone book
+    * Snom phones via XCAP (limits apply, 2000 entries on modern phones)
+    * Snom phones via tbook (limits apply, 2000 entries on modern phones)
     * Yealink phones via IPPhoneDirectory
     * AVM Fritz!Box (tested with 7360, 7490)
     * LDAP (tested with OpenDirectory)
