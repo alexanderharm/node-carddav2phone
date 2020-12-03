@@ -31,7 +31,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.snomXmlHandler = exports.snomHandler = void 0;
+exports.snomTbookHandler = exports.snomHandler = void 0;
 var utils_1 = require("./utils");
 var mailer_1 = require("./mailer");
 var fs = require("fs-extra");
@@ -48,7 +48,7 @@ function snomHandler(addressBooks, settingsSnom) {
     if (settingsSnom.xcap)
         snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap));
     if (settingsSnom.xml)
-        snomHandlers.push(snomXmlHandler(addressBooks, settingsSnom.xml));
+        snomHandlers.push(snomTbookHandler(addressBooks, settingsSnom.tbook));
     return es6_promise_1.Promise.all(snomHandlers);
 }
 exports.snomHandler = snomHandler;
@@ -344,35 +344,35 @@ function snomXcapUpdate(data, telephoneBook, settingsSnomXcap) {
 /**
  * handler for snom XML
  * @param addressBooks
- * @param settingsSnomXml
+ * @param settingsSnomTbook
  */
-function snomXmlHandler(addressBooks, settingsSnomXml) {
-    console.log('SnomXml: start');
-    var snomXmlPromises = es6_promise_1.Promise.resolve(true);
+function snomTbookHandler(addressBooks, settingsSnomTbook) {
+    console.log('SnomTbook: start');
+    var snomTbookPromises = es6_promise_1.Promise.resolve(true);
     var _loop_2 = function (i) {
-        var telephoneBook = settingsSnomXml.telephoneBooks[i];
+        var telephoneBook = settingsSnomTbook.telephoneBooks[i];
         // convert vCards to  XML
-        var data = xml(snomXmlProcessCards(telephoneBook, addressBooks), { declaration: true });
-        snomXmlPromises = snomXmlPromises.then(function () { return snomXmlUpdate(data, telephoneBook, settingsSnomXml); });
+        var data = xml(snomTbookProcessCards(telephoneBook, addressBooks), { declaration: true });
+        snomTbookPromises = snomTbookPromises.then(function () { return snomTbookUpdate(data, telephoneBook, settingsSnomTbook); });
     };
     // loop over all telephone books
-    for (var i = 0; i < settingsSnomXml.telephoneBooks.length; i++) {
+    for (var i = 0; i < settingsSnomTbook.telephoneBooks.length; i++) {
         _loop_2(i);
     }
-    return snomXmlPromises
+    return snomTbookPromises
         .catch(function (err) {
-        console.log('SnomXml: oops something went wrong');
+        console.log('SnomTbook: oops something went wrong');
         console.log(err);
         return es6_promise_1.Promise.resolve(false);
     });
 }
-exports.snomXmlHandler = snomXmlHandler;
+exports.snomTbookHandler = snomTbookHandler;
 /**
- * SnomXml : process address books
+ * SnomTbook : process address books
  * @param telephoneBook
  * @param addressBooks
  */
-function snomXmlProcessCards(telephoneBook, addressBooks) {
+function snomTbookProcessCards(telephoneBook, addressBooks) {
     var e_7, _a, e_8, _b;
     // all entries
     var entries = [];
@@ -409,7 +409,7 @@ function snomXmlProcessCards(telephoneBook, addressBooks) {
                     // check for dial prefix
                     var prefix = "prefix" in account ? account.prefix : '';
                     // process card
-                    var entry = snomXmlProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries);
+                    var entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries);
                     if (entry)
                         entries.push.apply(entries, __spread(entry));
                 }
@@ -437,7 +437,7 @@ function snomXmlProcessCards(telephoneBook, addressBooks) {
     };
 }
 /**
- * SnomXml : process single vcard
+ * SnomTbook : process single vcard
  * @param vcf
  * @param fullname
  * @param order
@@ -445,7 +445,7 @@ function snomXmlProcessCards(telephoneBook, addressBooks) {
  * @param duplicates
  * @param uniqueEntries
  */
-function snomXmlProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
+function snomTbookProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_9, _a, e_10, _b, e_11, _c, e_12, _d, e_13, _e;
     // entry name
     var lastName = utils_1.utilNameSanitize(vcf.names[0]);
@@ -626,26 +626,26 @@ function snomXmlProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntr
     return telephony;
 }
 /**
- * SnomXml : update
+ * SnomTbook : update
  * @param data
  * @param telephoneBook
- * @param settingsSnomXml
+ * @param settingsSnomTbook
  */
-function snomXmlUpdate(data, telephoneBook, settingsSnomXml) {
-    console.log('SnomXml : trying to update');
+function snomTbookUpdate(data, telephoneBook, settingsSnomTbook) {
+    console.log('SnomTbook : trying to update');
     var updates = [];
     // build path
-    var path = settingsSnomXml.webroot.trim();
+    var path = settingsSnomTbook.webroot.trim();
     if (path.slice(-1) !== '/')
         path += '/';
-    path += settingsSnomXml.dir.trim().replace(/^\//, '');
+    path += settingsSnomTbook.dir.trim().replace(/^\//, '');
     if (path.slice(-1) !== '/')
         path += '/';
     path += telephoneBook.filename.trim();
     return es6_promise_1.Promise.resolve(true)
         .then(function (res) { return fs.outputFile(path, data, { encoding: 'utf8' }); })
         .then(function (res) {
-        console.log('SnomXml : update successful');
+        console.log('SnomTbook : update successful');
         return es6_promise_1.Promise.resolve(true);
     });
 }

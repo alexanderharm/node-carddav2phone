@@ -126,7 +126,7 @@
                 }
             ]
         },
-        "xml": {
+        "tbook": {
             // the final path will be '<webroot>/<dir>/<filename>'
             "webroot": ".",
             "dir": "",

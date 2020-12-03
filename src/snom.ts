@@ -14,7 +14,7 @@ export function snomHandler (addressBooks: any, settingsSnom: any): Promise<bool
     console.log('Snom: start')
     let snomHandlers: any[] = []
     if (settingsSnom.xcap) snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap))
-    if (settingsSnom.xml) snomHandlers.push(snomXmlHandler(addressBooks, settingsSnom.xml))
+    if (settingsSnom.xml) snomHandlers.push(snomTbookHandler(addressBooks, settingsSnom.tbook))
     return Promise.all(snomHandlers)
 }
 
@@ -278,37 +278,37 @@ function snomXcapUpdate (data: string, telephoneBook: any, settingsSnomXcap: any
 /**
  * handler for snom XML
  * @param addressBooks
- * @param settingsSnomXml 
+ * @param settingsSnomTbook 
  */
-export function snomXmlHandler (addressBooks: any, settingsSnomXml: any): Promise<boolean>
+export function snomTbookHandler (addressBooks: any, settingsSnomTbook: any): Promise<boolean>
 {
-    console.log('SnomXml: start')
+    console.log('SnomTbook: start')
 
-    let snomXmlPromises: Promise<boolean> = Promise.resolve(true)
+    let snomTbookPromises: Promise<boolean> = Promise.resolve(true)
 
     // loop over all telephone books
-    for (let i = 0; i < settingsSnomXml.telephoneBooks.length; i++)
+    for (let i = 0; i < settingsSnomTbook.telephoneBooks.length; i++)
     {
-        let telephoneBook = settingsSnomXml.telephoneBooks[i]
+        let telephoneBook = settingsSnomTbook.telephoneBooks[i]
         // convert vCards to  XML
-        let data = <string>xml(snomXmlProcessCards(telephoneBook, addressBooks), { declaration: true })
-        snomXmlPromises = snomXmlPromises.then(() => snomXmlUpdate(data, telephoneBook, settingsSnomXml))
+        let data = <string>xml(snomTbookProcessCards(telephoneBook, addressBooks), { declaration: true })
+        snomTbookPromises = snomTbookPromises.then(() => snomTbookUpdate(data, telephoneBook, settingsSnomTbook))
     }
 
-    return snomXmlPromises
+    return snomTbookPromises
         .catch((err) => {
-            console.log('SnomXml: oops something went wrong')
+            console.log('SnomTbook: oops something went wrong')
             console.log(err)
             return Promise.resolve(false)
         })
 }
 
 /**
- * SnomXml : process address books
+ * SnomTbook : process address books
  * @param telephoneBook
  * @param addressBooks 
  */
-function snomXmlProcessCards (telephoneBook: any, addressBooks: any): any
+function snomTbookProcessCards (telephoneBook: any, addressBooks: any): any
 {
     // all entries
     let entries: any[] = []
@@ -352,7 +352,7 @@ function snomXmlProcessCards (telephoneBook: any, addressBooks: any): any
             let prefix = "prefix" in account ? account.prefix : ''
 
             // process card
-            let entry = snomXmlProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries)
+            let entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries)
 
             if (entry) entries.push(...entry)
         }
@@ -367,7 +367,7 @@ function snomXmlProcessCards (telephoneBook: any, addressBooks: any): any
 }
   
 /**
- * SnomXml : process single vcard
+ * SnomTbook : process single vcard
  * @param vcf
  * @param fullname
  * @param order
@@ -375,7 +375,7 @@ function snomXmlProcessCards (telephoneBook: any, addressBooks: any): any
  * @param duplicates
  * @param uniqueEntries
  */
-function snomXmlProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
+function snomTbookProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {   
     // entry name
     let lastName = utilNameSanitize(vcf.names[0]) 
@@ -522,27 +522,27 @@ function snomXmlProcessCard(vcf: any, fullname: string[], order: string[], prefi
 }
 
 /**
- * SnomXml : update
+ * SnomTbook : update
  * @param data
  * @param telephoneBook
- * @param settingsSnomXml
+ * @param settingsSnomTbook
  */
-function snomXmlUpdate (data: string, telephoneBook: any, settingsSnomXml: any): Promise<boolean>
+function snomTbookUpdate (data: string, telephoneBook: any, settingsSnomTbook: any): Promise<boolean>
 {
-    console.log('SnomXml : trying to update')
+    console.log('SnomTbook : trying to update')
 
     let updates = []
     // build path
-    let path = settingsSnomXml.webroot.trim()
+    let path = settingsSnomTbook.webroot.trim()
     if (path.slice(-1) !== '/') path += '/'
-    path += settingsSnomXml.dir.trim().replace(/^\//, '')
+    path += settingsSnomTbook.dir.trim().replace(/^\//, '')
     if (path.slice(-1) !== '/') path += '/'
     path += telephoneBook.filename.trim()
 
     return Promise.resolve(true)
         .then((res) => fs.outputFile(path, data, {encoding: 'utf8'}))
         .then((res) => {
-            console.log('SnomXml : update successful')
+            console.log('SnomTbook : update successful')
             return Promise.resolve(true)
         })
 }
