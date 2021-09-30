@@ -26,9 +26,14 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.snomTbookHandler = exports.snomHandler = void 0;
@@ -47,7 +52,7 @@ function snomHandler(addressBooks, settingsSnom) {
     var snomHandlers = [];
     if (settingsSnom.xcap)
         snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap));
-    if (settingsSnom.xml)
+    if (settingsSnom.tbook)
         snomHandlers.push(snomTbookHandler(addressBooks, settingsSnom.tbook));
     return es6_promise_1.Promise.all(snomHandlers);
 }
@@ -110,7 +115,7 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
                 for (var _c = (e_2 = void 0, __values(addressBooks[account.account - 1])), _d = _c.next(); !_d.done; _d = _c.next()) {
                     var vcard = _d.value;
                     // parse vCard
-                    var vcf = utils_1.utilParseVcard(vcard);
+                    var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no telephone number
                     if (vcf.tels.length === 0)
                         continue;
@@ -147,13 +152,13 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
                 }
             },
             {
-                list: __spread([
+                list: __spreadArray([
                     {
                         _attr: {
                             name: 'Contact List'
                         }
                     }
-                ], entries)
+                ], __read(entries), false)
             }
         ]
     };
@@ -171,7 +176,7 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
 function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries, xcapUniqueNumbers) {
     var e_3, _a, e_4, _b, e_5, _c;
     // entry name
-    var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -188,7 +193,7 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
             if (xcapUniqueNumbers.indexOf(tel.number) > -1) {
                 var errorMsg = 'Duplicate number (' + tel.number + ') on ' + entryName;
                 console.log('WARNING: ' + errorMsg);
-                mailer_1.sendMail('Sync: Duplicate phone number detected', errorMsg);
+                (0, mailer_1.sendMail)('Sync: Duplicate phone number detected', errorMsg);
                 continue;
             }
             xcapUniqueNumbers.push(tel.number);
@@ -256,7 +261,7 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
         finally { if (e_4) throw e_4.error; }
     }
     return {
-        entry: __spread([
+        entry: __spreadArray([
             {
                 'display-name': entryName
             },
@@ -300,7 +305,7 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
                     }
                 ]
             }
-        ], telephony)
+        ], __read(telephony), false)
     };
 }
 /**
@@ -402,7 +407,7 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
                 for (var _c = (e_8 = void 0, __values(addressBooks[account.account - 1])), _d = _c.next(); !_d.done; _d = _c.next()) {
                     var vcard = _d.value;
                     // parse vCard
-                    var vcf = utils_1.utilParseVcard(vcard);
+                    var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no telephone number
                     if (vcf.tels.length === 0)
                         continue;
@@ -411,7 +416,7 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
                     // process card
                     var entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries);
                     if (entry)
-                        entries.push.apply(entries, __spread(entry));
+                        entries.push.apply(entries, __spreadArray([], __read(entry), false));
                 }
             }
             catch (e_8_1) { e_8 = { error: e_8_1 }; }
@@ -431,9 +436,9 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
         finally { if (e_7) throw e_7.error; }
     }
     return {
-        tbook: __spread([
+        tbook: __spreadArray([
             { _attr: { complete: 'true' } }
-        ], entries)
+        ], __read(entries), false)
     };
 }
 /**
@@ -448,11 +453,11 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
 function snomTbookProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_9, _a, e_10, _b, e_11, _c, e_12, _d, e_13, _e;
     // entry name
-    var lastName = utils_1.utilNameSanitize(vcf.names[0]);
-    var firstName = utils_1.utilNameSanitize(vcf.names[1]);
-    var orgName = utils_1.utilNameSanitize(vcf.org);
+    var lastName = (0, utils_1.utilNameSanitize)(vcf.names[0]);
+    var firstName = (0, utils_1.utilNameSanitize)(vcf.names[1]);
+    var orgName = (0, utils_1.utilNameSanitize)(vcf.org);
     lastName = lastName === '' && firstName === '' ? orgName : lastName;
-    var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)

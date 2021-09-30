@@ -26,9 +26,14 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.yealinkHandler = void 0;
@@ -93,7 +98,7 @@ function yealinkProcessCards(telephoneBook, addressBooks) {
                 for (var _c = (e_2 = void 0, __values(addressBooks[account.account - 1])), _d = _c.next(); !_d.done; _d = _c.next()) {
                     var vcard = _d.value;
                     // parse vCard
-                    var vcf = utils_1.utilParseVcard(vcard);
+                    var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no telephone number
                     if (vcf.tels.length === 0)
                         continue;
@@ -122,7 +127,7 @@ function yealinkProcessCards(telephoneBook, addressBooks) {
         finally { if (e_1) throw e_1.error; }
     }
     var result = {};
-    result[telephoneBook.name + 'IPPhoneDirectory'] = __spread(entries);
+    result[telephoneBook.name + 'IPPhoneDirectory'] = __spreadArray([], __read(entries), false);
     return result;
 }
 /**
@@ -137,7 +142,7 @@ function yealinkProcessCards(telephoneBook, addressBooks) {
 function yealinkProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b, e_5, _c;
     // entry name
-    var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -202,11 +207,11 @@ function yealinkProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntr
         finally { if (e_4) throw e_4.error; }
     }
     return {
-        DirectoryEntry: __spread([
+        DirectoryEntry: __spreadArray([
             {
                 Name: entryName
             }
-        ], telephony)
+        ], __read(telephony), false)
     };
 }
 /**

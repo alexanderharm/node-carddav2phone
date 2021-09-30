@@ -26,9 +26,14 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fritzBoxHandler = void 0;
@@ -95,7 +100,7 @@ function fritzBoxProcessCards(telephoneBook, addressBooks) {
                 for (var _c = (e_2 = void 0, __values(addressBooks[account.account - 1])), _d = _c.next(); !_d.done; _d = _c.next()) {
                     var vcard = _d.value;
                     // parse vCard
-                    var vcf = utils_1.utilParseVcard(vcard);
+                    var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no telephone number
                     if (vcf.tels.length === 0)
                         continue;
@@ -125,13 +130,13 @@ function fritzBoxProcessCards(telephoneBook, addressBooks) {
     }
     return {
         phonebooks: [{
-                phonebook: __spread([
+                phonebook: __spreadArray([
                     {
                         _attr: {
                             name: telephoneBook.name
                         }
                     }
-                ], entries)
+                ], __read(entries), false)
             }]
     };
 }
@@ -147,7 +152,7 @@ function fritzBoxProcessCards(telephoneBook, addressBooks) {
 function fritzBoxProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b, e_5, _c;
     // entry name
-    var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -182,14 +187,14 @@ function fritzBoxProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
     var quickDialRe = /fb_quickdial\s*([0-9]{2})\s*\(([+0-9][0-9\ ]+)\)/i.exec(vcf.note);
     if (quickDialRe) {
         quickDial = quickDialRe[1];
-        quickDialNumber = utils_1.utilNumberSanitize(utils_1.utilNumberConvert(quickDialRe[2]));
+        quickDialNumber = (0, utils_1.utilNumberSanitize)((0, utils_1.utilNumberConvert)(quickDialRe[2]));
     }
     var vanity = '';
     var vanityNumber = '';
     var vanityRe = /fb_vanity\s*([a-z]{2,8})\s*\(([+0-9][0-9\ ]+)\)/i.exec(vcf.note);
     if (vanityRe) {
         vanity = vanityRe[1];
-        vanityNumber = utils_1.utilNumberSanitize(utils_1.utilNumberConvert(vanityRe[2]));
+        vanityNumber = (0, utils_1.utilNumberSanitize)((0, utils_1.utilNumberConvert)(vanityRe[2]));
     }
     // process all types and numbers
     var typeOrder = order.length !== 3 ? ['default'] : order;
@@ -269,7 +274,7 @@ function fritzBoxSid(settingsFB) {
         return rp(opt);
     })
         .then(function (res) {
-        return utils_1.utilParseXml(res);
+        return (0, utils_1.utilParseXml)(res);
     })
         .then(function (res) {
         var sid = res.SessionInfo.SID[0];
@@ -289,7 +294,7 @@ function fritzBoxSid(settingsFB) {
         return rp(opt);
     })
         .then(function (res) {
-        return utils_1.utilParseXml(res);
+        return (0, utils_1.utilParseXml)(res);
     })
         .then(function (res) {
         var sid = res.SessionInfo.SID[0];

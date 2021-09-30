@@ -15,9 +15,14 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
@@ -81,13 +86,13 @@ function carddavRetrieve(settings) {
             }
             if (res[0].length === 0) {
                 console.log(accountname + ': no vcards downloaded, using stored ones');
-                (_a = carddavVcards[i]).push.apply(_a, __spread(res[1]));
+                (_a = carddavVcards[i]).push.apply(_a, __spreadArray([], __read(res[1]), false));
                 carddavResults.push(false);
                 return false;
             }
-            (_b = carddavVcards[i]).push.apply(_b, __spread(res[0]));
+            (_b = carddavVcards[i]).push.apply(_b, __spreadArray([], __read(res[0]), false));
             // compare current and previous contacts
-            if (shallow_equal_object_1.shallowEqual(res[0], res[1])) {
+            if ((0, shallow_equal_object_1.shallowEqual)(res[0], res[1])) {
                 console.log(accountname + ': no updates');
                 carddavResults.push(false);
                 return false;

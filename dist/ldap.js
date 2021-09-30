@@ -83,7 +83,7 @@ function ldapProcessCards(telephoneBook, addressBooks) {
                 for (var _c = (e_2 = void 0, __values(addressBooks[account.account - 1])), _d = _c.next(); !_d.done; _d = _c.next()) {
                     var vcard = _d.value;
                     // parse vCard
-                    var vcf = utils_1.utilParseVcard(vcard);
+                    var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no telephone number
                     if (vcf.tels.length === 0)
                         continue;
@@ -124,7 +124,7 @@ function ldapProcessCards(telephoneBook, addressBooks) {
 function ldapProcessCard(vcf, prefix, fullname, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b;
     // entry name
-    var entryName = utils_1.utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)

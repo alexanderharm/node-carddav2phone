@@ -15,19 +15,19 @@ var es6_promise_1 = require("es6-promise");
 function phoneHandlers(accountsVcards, settings) {
     var handlers = [];
     if (settings.fritzbox)
-        handlers.push(fritzbox_1.fritzBoxHandler(accountsVcards, settings.fritzbox));
+        handlers.push((0, fritzbox_1.fritzBoxHandler)(accountsVcards, settings.fritzbox));
     if (settings.ldap)
-        handlers.push(ldap_1.ldapHandler(accountsVcards, settings.ldap));
+        handlers.push((0, ldap_1.ldapHandler)(accountsVcards, settings.ldap));
     if (settings.snom)
-        handlers.push(snom_1.snomHandler(accountsVcards, settings.snom));
+        handlers.push((0, snom_1.snomHandler)(accountsVcards, settings.snom));
     if (settings.yealink)
-        handlers.push(yealink_1.yealinkHandler(accountsVcards, settings.yealink));
+        handlers.push((0, yealink_1.yealinkHandler)(accountsVcards, settings.yealink));
     return es6_promise_1.Promise.all(handlers).then(function (res) { return es6_promise_1.Promise.resolve(true); });
 }
 /**
  * create clients
  */
-carddav_1.carddavRetrieve(utils_1.settings)
+(0, carddav_1.carddavRetrieve)(utils_1.settings)
     .then(function (res) {
     if (res[0].indexOf(true) > -1) {
         console.log('CardDAV: updates available');

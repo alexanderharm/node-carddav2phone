@@ -14,7 +14,7 @@ export function snomHandler (addressBooks: any, settingsSnom: any): Promise<bool
     console.log('Snom: start')
     let snomHandlers: any[] = []
     if (settingsSnom.xcap) snomHandlers.push(snomXcapHandler(addressBooks, settingsSnom.xcap))
-    if (settingsSnom.xml) snomHandlers.push(snomTbookHandler(addressBooks, settingsSnom.tbook))
+    if (settingsSnom.tbook) snomHandlers.push(snomTbookHandler(addressBooks, settingsSnom.tbook))
     return Promise.all(snomHandlers)
 }
 
