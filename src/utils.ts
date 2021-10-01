@@ -102,6 +102,36 @@ export function utilNumberGetType (type: string|string[], number: PhoneNumber): 
 }
 
 /**
+ * determine fax number type
+ * @param type 
+ */
+ export function utilFaxGetType (type: string|string[]): string|undefined
+ {
+     // normalize
+     if (!Array.isArray(type)) type = [ type ]
+   
+     if (type.indexOf('fax') > -1)
+     {
+         if (type.indexOf('work') > -1) return 'work'
+         return 'home'
+     }
+     return
+ }
+
+ /**
+ * determine email type
+ * @param type 
+ */
+  export function utilEmailGetType (type: string|string[]): string|undefined
+  {
+      // normalize
+      if (!Array.isArray(type)) type = [ type ]
+    
+      if (type.indexOf('work') > -1) return 'work'
+      return 'home'
+  }
+
+/**
  * sanitize number
  * @param phoneNumber 
  */
@@ -162,10 +192,39 @@ export function utilParseVcard (vcard: any): any
         if (type) tels.push({type: type, number: utilNumberSanitize(number)})
     }
 
-    // get note
-    let note: string = vcf.get('note') ? vcf.get('note').valueOf() : ''
+    // get array of fax numbers
+    let faxs: any[] = []
+    let faxstmp: any[] = vcf.get('tel') ? vcf.get('tel') : []
+    if (!Array.isArray(faxstmp)) faxstmp = [ faxstmp ]
+    for (let fax of faxstmp) {
+        // test if number
+        if (!utilNumberValid(fax.valueOf())) continue
+        // convert to number
+        let number = utilNumberConvert(fax.valueOf())
+        // determine type
+        let type = utilFaxGetType(fax.type)
+        // store number if of type fax
+        if (type) faxs.push({type: type, number: utilNumberSanitize(number)})
+    }
 
-    return {uid, names, org, tels, note}
+    // get array of email addresses
+    let emails: any[] = []
+    let emailstmp: any[] = vcf.get('email') ? vcf.get('email') : []
+    if (!Array.isArray(emailstmp)) emailstmp = [ emailstmp ]
+    for (let email of emailstmp) {
+        // verify if email is valid
+        if (!email.valueOf()) continue
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.valueOf())) continue
+        // determine type
+        let type = utilEmailGetType(email.type)
+        // store email
+        emails.push({type: type, address: email.valueOf()})
+    }
+
+    // get note
+    let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf() : ''
+
+    return {uid, names, org, tels, faxs, emails, note}
 }
 
 /**

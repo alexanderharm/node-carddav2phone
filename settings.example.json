@@ -85,6 +85,37 @@
             }
         ]
     },
+    "pascom": {
+        "csv": {
+            // the final path will be '<outputdir>/<filename>'
+            "outputdir": ".",
+            "telephoneBooks": [
+                {
+                    "filename": "pascom_private.csv",
+                    // define an arbitrary order of 'first' and 'last' name
+                    "fullname": ["first", "last"],
+                    // optionally sync only specific accounts (refered to by their order)
+                    // you can also define a prefix per account (e. g. to use specific line)
+                    "accounts": [{"account": 1}],
+                    // allow duplicate entries
+                    "duplicates": false
+                },
+                {
+                    "filename": "pascom_company.csv",
+                    // define an arbitrary order of 'first' and 'last' name
+                    "fullname": ["first", "last"],
+                    // optionally sync only specific accounts (refered to by their order)
+                    // you can also define a prefix per account (e. g. to use specific line)
+                    "accounts": [
+                        {"account": 1, "prefix": "0"},
+                        {"account": 2, "prefix": "0"}
+                    ],
+                    // allow duplicate entries
+                    "duplicates": false
+                }
+            ]
+        }
+    },
     "snom": {
         "xcap": {
             // the final path will be '<webroot>/<dir>/users/sip:<username>/<filename>'

@@ -1,6 +1,6 @@
 {
   "name": "node-carddav2phone",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A CardDAV to IP phones converter based on node.js",
   "main": "dist/index.js",
   "repository": {
@@ -13,9 +13,13 @@
   "keywords": [
     "carddav",
     "icloud",
+    "AVM",
     "Fritz!Box",
+    "pascom",
     "snom",
-    "XCAP"
+    "XCAP",
+    "tbook",
+    "yealink"
   ],
   "author": "Alexander Harm",
   "license": "MIT",
@@ -26,6 +30,7 @@
     "es6-promise": "^4.2.8",
     "fs-extra": "^10.0.0",
     "iconv-lite": "^0.6.2",
+    "jsonexport": "^3.2.0",
     "ldapjs": "^2.2.0",
     "md5": "^2.3.0",
     "nodemailer": "^6.4.13",
@@ -38,6 +43,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^9.0.1",
+    "@types/jsonexport": "^3.0.2",
     "@types/md5": "^2.2.0",
     "@types/node": "^16.10.2",
     "@types/xml": "^1.0.5",

@@ -2,6 +2,7 @@ import {settings} from './utils'
 import {carddavRetrieve} from './carddav'
 import {fritzBoxHandler} from './fritzbox'
 import {ldapHandler} from './ldap'
+import {pascomHandler} from './pascom'
 import {snomHandler} from './snom'
 import {yealinkHandler} from './yealink'
 import {Promise} from 'es6-promise'
@@ -16,6 +17,7 @@ function phoneHandlers (accountsVcards: any, settings: any): Promise<boolean>
     let handlers: Promise<any>[] = []
     if (settings.fritzbox) handlers.push(fritzBoxHandler(accountsVcards, settings.fritzbox))
     if (settings.ldap) handlers.push(ldapHandler(accountsVcards, settings.ldap))
+    if (settings.pascom) handlers.push(pascomHandler(accountsVcards, settings.pascom))
     if (settings.snom) handlers.push(snomHandler(accountsVcards, settings.snom))
     if (settings.yealink) handlers.push(yealinkHandler(accountsVcards, settings.yealink))
 

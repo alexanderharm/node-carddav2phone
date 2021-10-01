@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.utilParseXml = exports.utilParseVcard = exports.utilNumberValid = exports.utilNumberSanitize = exports.utilNumberGetType = exports.utilNumberConvert = exports.utilNameSanitize = exports.utilNameFormat = exports.utilOrgName = exports.settings = void 0;
+exports.utilParseXml = exports.utilParseVcard = exports.utilNumberValid = exports.utilNumberSanitize = exports.utilEmailGetType = exports.utilFaxGetType = exports.utilNumberGetType = exports.utilNumberConvert = exports.utilNameSanitize = exports.utilNameFormat = exports.utilOrgName = exports.settings = void 0;
 var json = require("comment-json");
 var fs = require("fs-extra");
 var awesome_phonenumber_1 = __importDefault(require("awesome-phonenumber"));
@@ -115,6 +115,35 @@ function utilNumberGetType(type, number) {
 }
 exports.utilNumberGetType = utilNumberGetType;
 /**
+ * determine fax number type
+ * @param type
+ */
+function utilFaxGetType(type) {
+    // normalize
+    if (!Array.isArray(type))
+        type = [type];
+    if (type.indexOf('fax') > -1) {
+        if (type.indexOf('work') > -1)
+            return 'work';
+        return 'home';
+    }
+    return;
+}
+exports.utilFaxGetType = utilFaxGetType;
+/**
+* determine email type
+* @param type
+*/
+function utilEmailGetType(type) {
+    // normalize
+    if (!Array.isArray(type))
+        type = [type];
+    if (type.indexOf('work') > -1)
+        return 'work';
+    return 'home';
+}
+exports.utilEmailGetType = utilEmailGetType;
+/**
  * sanitize number
  * @param phoneNumber
  */
@@ -144,7 +173,7 @@ exports.utilNumberValid = utilNumberValid;
  * @returns uid, names, org, tel, note
  */
 function utilParseVcard(vcard) {
-    var e_1, _a;
+    var e_1, _a, e_2, _b, e_3, _c;
     // parse vCard
     var vcf = new Vcf().parse(vcard);
     // get uid
@@ -180,9 +209,62 @@ function utilParseVcard(vcard) {
         }
         finally { if (e_1) throw e_1.error; }
     }
+    // get array of fax numbers
+    var faxs = [];
+    var faxstmp = vcf.get('tel') ? vcf.get('tel') : [];
+    if (!Array.isArray(faxstmp))
+        faxstmp = [faxstmp];
+    try {
+        for (var faxstmp_1 = __values(faxstmp), faxstmp_1_1 = faxstmp_1.next(); !faxstmp_1_1.done; faxstmp_1_1 = faxstmp_1.next()) {
+            var fax = faxstmp_1_1.value;
+            // test if number
+            if (!utilNumberValid(fax.valueOf()))
+                continue;
+            // convert to number
+            var number = utilNumberConvert(fax.valueOf());
+            // determine type
+            var type = utilFaxGetType(fax.type);
+            // store number if of type fax
+            if (type)
+                faxs.push({ type: type, number: utilNumberSanitize(number) });
+        }
+    }
+    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+    finally {
+        try {
+            if (faxstmp_1_1 && !faxstmp_1_1.done && (_b = faxstmp_1.return)) _b.call(faxstmp_1);
+        }
+        finally { if (e_2) throw e_2.error; }
+    }
+    // get array of email addresses
+    var emails = [];
+    var emailstmp = vcf.get('email') ? vcf.get('email') : [];
+    if (!Array.isArray(emailstmp))
+        emailstmp = [emailstmp];
+    try {
+        for (var emailstmp_1 = __values(emailstmp), emailstmp_1_1 = emailstmp_1.next(); !emailstmp_1_1.done; emailstmp_1_1 = emailstmp_1.next()) {
+            var email = emailstmp_1_1.value;
+            // verify if email is valid
+            if (!email.valueOf())
+                continue;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.valueOf()))
+                continue;
+            // determine type
+            var type = utilEmailGetType(email.type);
+            // store email
+            emails.push({ type: type, address: email.valueOf() });
+        }
+    }
+    catch (e_3_1) { e_3 = { error: e_3_1 }; }
+    finally {
+        try {
+            if (emailstmp_1_1 && !emailstmp_1_1.done && (_c = emailstmp_1.return)) _c.call(emailstmp_1);
+        }
+        finally { if (e_3) throw e_3.error; }
+    }
     // get note
-    var note = vcf.get('note') ? vcf.get('note').valueOf() : '';
-    return { uid: uid, names: names, org: org, tels: tels, note: note };
+    var note = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf() : '';
+    return { uid: uid, names: names, org: org, tels: tels, faxs: faxs, emails: emails, note: note };
 }
 exports.utilParseVcard = utilParseVcard;
 /**

@@ -4,6 +4,7 @@ var utils_1 = require("./utils");
 var carddav_1 = require("./carddav");
 var fritzbox_1 = require("./fritzbox");
 var ldap_1 = require("./ldap");
+var pascom_1 = require("./pascom");
 var snom_1 = require("./snom");
 var yealink_1 = require("./yealink");
 var es6_promise_1 = require("es6-promise");
@@ -18,6 +19,8 @@ function phoneHandlers(accountsVcards, settings) {
         handlers.push((0, fritzbox_1.fritzBoxHandler)(accountsVcards, settings.fritzbox));
     if (settings.ldap)
         handlers.push((0, ldap_1.ldapHandler)(accountsVcards, settings.ldap));
+    if (settings.pascom)
+        handlers.push((0, pascom_1.pascomHandler)(accountsVcards, settings.pascom));
     if (settings.snom)
         handlers.push((0, snom_1.snomHandler)(accountsVcards, settings.snom));
     if (settings.yealink)

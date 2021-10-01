@@ -1,6 +1,6 @@
 # node-carddav2phone
 
-A CardDAV to IP phones converter primarily intended for AVM Fritz!Box & Snom IP phones (via XCAP). It currently supports
+A CardDAV to IP phones converter/importer. It currently supports
 
 * Source:
 
@@ -8,20 +8,23 @@ A CardDAV to IP phones converter primarily intended for AVM Fritz!Box & Snom IP 
 
 * Destinations:
 
+    * AVM FRITZ!Box (tested with 7360, 7490)
+    * LDAP (tested with OpenDirectory)
+    * pascom PBX via CSV import (use Advanced > Connector in pascom)
     * Snom phones via XCAP (limits apply, 2000 entries on modern phones)
     * Snom phones via tbook (limits apply, 2000 entries on modern phones)
     * Yealink phones via IPPhoneDirectory
-    * AVM Fritz!Box (tested with 7360, 7490)
-    * LDAP (tested with OpenDirectory)
     * in principle it can easily be extended to serve other vendors.
 
 Refer to `settings.example.json` for all configuration options.
 
 ***Breaking Changes in v2.x: CardDAV settings are now configured per Destination to allow for different CardDAV accounts per device/phonebook***
 
-## AVM Fritz!Box
+## AVM FRITZ!Box
 
-You can setup the Fritz!Box specific settings for VIP, quickdial and vanity in the notes of a vcard:
+:information_source: You can also directly add you CardDAV server to your FRITZ!Box with later firmwares. You might want to prefer this over setting up this tool if you do not need the customizations and manipulations of your contacts.
+
+You can setup the FRITZ!Box specific settings for VIP, quickdial and vanity in the notes of a vcard:
 
 * for VIP (important) mode add the string: `FB_VIP`
 * for quickdial add: `FB_QUICKDIAL NN (<telephone number>)` whereby `NN` are two digits (quickdial `**7NN`), the telephone number can only contain digits (`[0-9]`), the plus-symbol (`[+]`) and whitespace, it must be enclosed in parenthesis
@@ -64,7 +67,7 @@ xcap_via_tls!: <on|off depending on whether you HTTPS or not>
 - the snom phone should now synchronise the contacts
 - setup a cron job to run the script on a regular basis in order to keep your contacts updated
     
-## Known issues
+:warning: Known issues
 
-There is a serious performance decrease with Snom phones rendering them more or less unusable with XCAP files having duplicate numbers.
+There is a serious performance decrease with Snom phones rendering them more or less unusable with XCAP files having duplicate numbers. Unfortunately in my experience that also holds true for XCAP in general in v10.
 The script now ignores duplicate phone numbers and it will mail you a warning about the concerned entries if you configure the mail section.
