@@ -222,7 +222,7 @@ export function utilParseVcard (vcard: any): any
     }
 
     // get note
-    let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf() : ''
+    let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().replace(/\\,/g, ',') : ''
 
     return {uid, names, org, tels, faxs, emails, note}
 }

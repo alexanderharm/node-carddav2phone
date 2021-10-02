@@ -263,7 +263,7 @@ function utilParseVcard(vcard) {
         finally { if (e_3) throw e_3.error; }
     }
     // get note
-    var note = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf() : '';
+    var note = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().replace(/\\,/g, ',') : '';
     return { uid: uid, names: names, org: org, tels: tels, faxs: faxs, emails: emails, note: note };
 }
 exports.utilParseVcard = utilParseVcard;
