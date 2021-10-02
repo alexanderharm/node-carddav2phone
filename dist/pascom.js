@@ -292,7 +292,7 @@ function pascomCsvProcessCard(vcf, fullname, prefix, duplicates, uniqueEntries) 
         home: numberHome,
         fax: faxWork ? faxWork : faxHome,
         email: emailWork ? emailWork : emailHome,
-        notes: vcf.note
+        notes: vcf.note.replace(/"/g, '"""')
     };
 }
 /**
