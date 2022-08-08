@@ -172,7 +172,8 @@ export function utilParseVcard (vcard: any): any
     let uid: string = vcf.get('uid').valueOf()
 
     // get array of names
-    let names: string[] = vcf.get('n').valueOf().split(';').map((name: string) => name.trim())
+    let names: string[] = []
+    if (vcf.get('n')) names = vcf.get('n').valueOf().split(';').map((name: string) => name.trim())
 
     // get org name
     let org: string = vcf.get('org') ? vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim() : ''

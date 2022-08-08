@@ -82,7 +82,8 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
             // parse vCard
             let vcf = utilParseVcard(vcard)
 
-            // skip if no telephone number
+            // skip if no name or telephone number
+            if (vcf.names.length === 0) continue
             if (vcf.tels.length === 0) continue
 
             // check for dial prefix

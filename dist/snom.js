@@ -116,7 +116,9 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
                     var vcard = _d.value;
                     // parse vCard
                     var vcf = (0, utils_1.utilParseVcard)(vcard);
-                    // skip if no telephone number
+                    // skip if no name or telephone number
+                    if (vcf.names.length === 0)
+                        continue;
                     if (vcf.tels.length === 0)
                         continue;
                     // check for dial prefix

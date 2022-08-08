@@ -179,7 +179,9 @@ function utilParseVcard(vcard) {
     // get uid
     var uid = vcf.get('uid').valueOf();
     // get array of names
-    var names = vcf.get('n').valueOf().split(';').map(function (name) { return name.trim(); });
+    var names = [];
+    if (vcf.get('n'))
+        names = vcf.get('n').valueOf().split(';').map(function (name) { return name.trim(); });
     // get org name
     var org = vcf.get('org') ? vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim() : '';
     // get array of telephone numbers
