@@ -45,11 +45,9 @@ function utilNameFormat(last, first, org, fullname) {
     var name = '';
     if (last.length === 0 && first.length === 0) {
         name += org;
-        if (org.length > 0)
-            name += ' - ' + org;
     }
     else {
-        if (fullname.indexOf(first) > 0) {
+        if (fullname.indexOf('first') > 0) {
             if (last.length > 0)
                 name += last;
             if (first.length > 0)

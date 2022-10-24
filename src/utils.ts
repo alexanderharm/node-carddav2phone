@@ -50,11 +50,10 @@ export function utilNameFormat (last: string, first: string, org: string, fullna
     if (last.length === 0 && first.length === 0)
     {
         name += org
-        if (org.length > 0) name += ' - ' + org
     }
     else
     {
-        if (fullname.indexOf(first) > 0)
+        if (fullname.indexOf('first') > 0)
         {
             if (last.length > 0) name += last
             if (first.length > 0) name += ' ' + first
