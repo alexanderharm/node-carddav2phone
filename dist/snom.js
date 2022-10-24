@@ -455,11 +455,7 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
 function snomTbookProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_9, _a, e_10, _b, e_11, _c, e_12, _d, e_13, _e;
     // entry name
-    var lastName = (0, utils_1.utilNameSanitize)(vcf.names[0]);
-    var firstName = (0, utils_1.utilNameSanitize)(vcf.names[1]);
-    var orgName = (0, utils_1.utilNameSanitize)(vcf.org);
-    lastName = lastName === '' && firstName === '' ? orgName : lastName;
-    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -505,13 +501,13 @@ function snomTbookProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEn
                                         _attr: { context: 'active' }
                                     },
                                     {
-                                        first_name: firstName
+                                        first_name: vcf.firstName
                                     },
                                     {
-                                        last_name: lastName
+                                        last_name: vcf.lastName
                                     },
                                     {
-                                        organization: orgName
+                                        organization: vcf.orgName
                                     },
                                     {
                                         number: entry.number
@@ -556,13 +552,13 @@ function snomTbookProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEn
                                             _attr: { context: 'active' }
                                         },
                                         {
-                                            first_name: firstName
+                                            first_name: vcf.firstName
                                         },
                                         {
-                                            last_name: lastName
+                                            last_name: vcf.lastName
                                         },
                                         {
-                                            organization: orgName
+                                            organization: vcf.orgName
                                         },
                                         {
                                             number: entry.number

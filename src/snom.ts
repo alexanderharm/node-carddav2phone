@@ -379,11 +379,7 @@ function snomTbookProcessCards (telephoneBook: any, addressBooks: any): any
 function snomTbookProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {   
     // entry name
-    let lastName = utilNameSanitize(vcf.names[0]) 
-    let firstName = utilNameSanitize(vcf.names[1])
-    let orgName = utilNameSanitize(vcf.org)
-    lastName = lastName === '' && firstName === '' ? orgName : lastName
-    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
 
     // check for duplicates
     if (!duplicates) {
@@ -424,13 +420,13 @@ function snomTbookProcessCard(vcf: any, fullname: string[], order: string[], pre
                                 _attr: {context: 'active'}
                             },
                             {
-                                first_name: firstName
+                                first_name: vcf.firstName
                             },
                             {
-                                last_name: lastName
+                                last_name: vcf.lastName
                             },
                             {
-                                organization: orgName
+                                organization: vcf.orgName
                             },
                             {
                                 number: entry.number
@@ -460,13 +456,13 @@ function snomTbookProcessCard(vcf: any, fullname: string[], order: string[], pre
                                     _attr: {context: 'active'}
                                 },
                                 {
-                                    first_name: firstName
+                                    first_name: vcf.firstName
                                 },
                                 {
-                                    last_name: lastName
+                                    last_name: vcf.lastName
                                 },
                                 {
-                                    organization: orgName
+                                    organization: vcf.orgName
                                 },
                                 {
                                     number: entry.number
