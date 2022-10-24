@@ -115,8 +115,8 @@ function pascomCsvProcessCards(telephoneBook, addressBooks) {
                     var vcard = _d.value;
                     // parse vCard
                     var vcf = (0, utils_1.utilParseVcard)(vcard);
-                    // skip if no name or telephone number
-                    if (vcf.names.length === 0)
+                    // skip if no name no org or telephone number
+                    if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0)
                         continue;
                     if (vcf.tels.length === 0)
                         continue;
@@ -157,11 +157,7 @@ function pascomCsvProcessCards(telephoneBook, addressBooks) {
 function pascomCsvProcessCard(vcf, fullname, prefix, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b, e_5, _c, e_6, _d, e_7, _e, e_8, _f;
     // entry name
-    var lastName = (0, utils_1.utilNameSanitize)(vcf.names[0]);
-    var firstName = (0, utils_1.utilNameSanitize)(vcf.names[1]);
-    var orgName = (0, utils_1.utilNameSanitize)(vcf.org);
-    lastName = lastName === '' && firstName === '' ? orgName : lastName;
-    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -286,9 +282,9 @@ function pascomCsvProcessCard(vcf, fullname, prefix, duplicates, uniqueEntries) 
     var emailWork = emails.work.length > 0 ? emails.work[0] : "";
     return {
         displayName: entryName,
-        firstName: firstName,
-        lastName: lastName,
-        orgName: orgName,
+        firstName: vcf.firstName,
+        lastName: vcf.lastName,
+        orgName: vcf.orgName,
         work: numberWork,
         mobile: numberMobile,
         home: numberHome,

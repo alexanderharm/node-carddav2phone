@@ -117,7 +117,7 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
                     // parse vCard
                     var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no name or telephone number
-                    if (vcf.names.length === 0)
+                    if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0)
                         continue;
                     if (vcf.tels.length === 0)
                         continue;
@@ -178,7 +178,7 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
 function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries, xcapUniqueNumbers) {
     var e_3, _a, e_4, _b, e_5, _c;
     // entry name
-    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -282,7 +282,7 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
                     {
                         _attr: {
                             name: 'surname',
-                            value: vcf.names[0]
+                            value: vcf.lastName
                         }
                     }
                 ]
@@ -292,7 +292,7 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
                     {
                         _attr: {
                             name: 'given_name',
-                            value: vcf.names[1]
+                            value: vcf.firstName
                         }
                     }
                 ]
@@ -302,7 +302,7 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
                     {
                         _attr: {
                             name: 'company',
-                            value: vcf.org
+                            value: vcf.orgName
                         }
                     }
                 ]

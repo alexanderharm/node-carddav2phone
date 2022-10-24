@@ -5,7 +5,25 @@ import {Promise} from 'es6-promise'
 const Vcf = require('vcf')
 import Xml2js = require('xml2js')
 
-export const settings = json.parse(fs.readFileSync(__dirname + '/../settings.json', {encoding: 'utf8'}))
+export interface settingsInterface
+{
+    carddav: {
+        accounts: [{
+            url: string
+            username: string
+            password: string
+        }]
+    }
+    telephony: {
+        countryCode: string
+        stripCountryCode: boolean
+        areaCode: string
+        stripAreaCode: boolean
+    }
+
+}
+
+export const settings: any = json.parse(fs.readFileSync(__dirname + '/../settings.json', {encoding: 'utf8'}))
 
 /**
  * get company name
@@ -29,18 +47,27 @@ export function utilOrgName (vcf: any): string
 export function utilNameFormat (last: string, first: string, org: string, fullname: string[]): string
 {
     let name = ''
-    if (fullname.indexOf(first) > 0)
+    if (last.length === 0 && first.length === 0)
     {
-        if (last.length > 0) name += last
-        if (first.length > 0) name += ' ' + first
+        name += org
+        if (org.length > 0) name += ' - ' + org
     }
     else
     {
-        if (first.length > 0) name += first
-        if (last.length > 0) name += ' ' + last
+        if (fullname.indexOf(first) > 0)
+        {
+            if (last.length > 0) name += last
+            if (first.length > 0) name += ' ' + first
+        }
+        else
+        {
+            if (first.length > 0) name += first
+            if (last.length > 0) name += ' ' + last
+        }
+    
+        if (org.length > 0) name += ' - ' + org
     }
-
-    if (org.length > 0) name += ' - ' + org
+    
     return name.replace(/\\/g, '').replace(/^ \- /g, '').replace(/  /g, '').trim()
 }
 
@@ -173,10 +200,18 @@ export function utilParseVcard (vcard: any): any
 
     // get array of names
     let names: string[] = []
+    let lastName: string = ''
+    let firstName: string = ''
     if (vcf.get('n')) names = vcf.get('n').valueOf().split(';').map((name: string) => name.trim())
+    if (names[0] && names[0].length > 0) lastName = utilNameSanitize(names[0])
+    if (names[1] && names[1].length > 0) firstName = utilNameSanitize(names[1])
 
     // get org name
-    let org: string = vcf.get('org') ? vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim() : ''
+    let orgs: string[] = []
+    let orgName: string = ''
+    if (vcf.get('org')) orgs = vcf.get('org').valueOf().split(';').map((org: string) => org.trim())
+    if (orgs[0] && orgs[0].length > 0 && orgs[1] && orgs[1].length > 0) orgName = utilNameSanitize(orgs[1]) + ' - ' + utilNameSanitize(orgs[0])
+    else if (orgs[0] && orgs[0].length > 0) orgName = utilNameSanitize(orgs[0])
 
     // get array of telephone numbers
     let tels: any[] = []
@@ -225,7 +260,7 @@ export function utilParseVcard (vcard: any): any
     // get note
     let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().replace(/\\,/g, ',') : ''
 
-    return {uid, names, org, tels, faxs, emails, note}
+    return {uid, lastName,firstName, orgName, tels, faxs, emails, note}
 }
 
 /**

@@ -72,7 +72,7 @@ function fritzBoxProcessCards (telephoneBook: any, addressBooks: any): any
             let vcf = utilParseVcard(vcard)
 
             // skip if no name or telephone number
-            if (vcf.names.length === 0) continue
+            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0) continue
             if (vcf.tels.length === 0) continue
 
             // check for dial prefix
@@ -110,7 +110,7 @@ function fritzBoxProcessCards (telephoneBook: any, addressBooks: any): any
 function fritzBoxProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {
     // entry name
-    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
 
     // check for duplicates
     if (!duplicates) {

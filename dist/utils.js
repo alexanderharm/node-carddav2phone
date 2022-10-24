@@ -43,20 +43,27 @@ exports.utilOrgName = utilOrgName;
  */
 function utilNameFormat(last, first, org, fullname) {
     var name = '';
-    if (fullname.indexOf(first) > 0) {
-        if (last.length > 0)
-            name += last;
-        if (first.length > 0)
-            name += ' ' + first;
+    if (last.length === 0 && first.length === 0) {
+        name += org;
+        if (org.length > 0)
+            name += ' - ' + org;
     }
     else {
-        if (first.length > 0)
-            name += first;
-        if (last.length > 0)
-            name += ' ' + last;
+        if (fullname.indexOf(first) > 0) {
+            if (last.length > 0)
+                name += last;
+            if (first.length > 0)
+                name += ' ' + first;
+        }
+        else {
+            if (first.length > 0)
+                name += first;
+            if (last.length > 0)
+                name += ' ' + last;
+        }
+        if (org.length > 0)
+            name += ' - ' + org;
     }
-    if (org.length > 0)
-        name += ' - ' + org;
     return name.replace(/\\/g, '').replace(/^ \- /g, '').replace(/  /g, '').trim();
 }
 exports.utilNameFormat = utilNameFormat;
@@ -180,10 +187,23 @@ function utilParseVcard(vcard) {
     var uid = vcf.get('uid').valueOf();
     // get array of names
     var names = [];
+    var lastName = '';
+    var firstName = '';
     if (vcf.get('n'))
         names = vcf.get('n').valueOf().split(';').map(function (name) { return name.trim(); });
+    if (names[0] && names[0].length > 0)
+        lastName = utilNameSanitize(names[0]);
+    if (names[1] && names[1].length > 0)
+        firstName = utilNameSanitize(names[1]);
     // get org name
-    var org = vcf.get('org') ? vcf.get('org').valueOf().replace(/\\/g, '').replace(/\;/g, ' - ').replace(/^ \- /g, '').replace(/ \- $/g, '').trim() : '';
+    var orgs = [];
+    var orgName = '';
+    if (vcf.get('org'))
+        orgs = vcf.get('org').valueOf().split(';').map(function (org) { return org.trim(); });
+    if (orgs[0] && orgs[0].length > 0 && orgs[1] && orgs[1].length > 0)
+        orgName = utilNameSanitize(orgs[1]) + ' - ' + utilNameSanitize(orgs[0]);
+    else if (orgs[0] && orgs[0].length > 0)
+        orgName = utilNameSanitize(orgs[0]);
     // get array of telephone numbers
     var tels = [];
     var telstmp = vcf.get('tel') ? vcf.get('tel') : [];
@@ -266,7 +286,7 @@ function utilParseVcard(vcard) {
     }
     // get note
     var note = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().replace(/\\,/g, ',') : '';
-    return { uid: uid, names: names, org: org, tels: tels, faxs: faxs, emails: emails, note: note };
+    return { uid: uid, lastName: lastName, firstName: firstName, orgName: orgName, tels: tels, faxs: faxs, emails: emails, note: note };
 }
 exports.utilParseVcard = utilParseVcard;
 /**

@@ -102,7 +102,7 @@ function fritzBoxProcessCards(telephoneBook, addressBooks) {
                     // parse vCard
                     var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no name or telephone number
-                    if (vcf.names.length === 0)
+                    if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0)
                         continue;
                     if (vcf.tels.length === 0)
                         continue;
@@ -154,7 +154,7 @@ function fritzBoxProcessCards(telephoneBook, addressBooks) {
 function fritzBoxProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b, e_5, _c;
     // entry name
-    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)

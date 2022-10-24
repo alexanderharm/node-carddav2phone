@@ -85,7 +85,7 @@ function ldapProcessCards(telephoneBook, addressBooks) {
                     // parse vCard
                     var vcf = (0, utils_1.utilParseVcard)(vcard);
                     // skip if no name or telephone number
-                    if (vcf.names.length === 0)
+                    if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0)
                         continue;
                     if (vcf.tels.length === 0)
                         continue;
@@ -126,7 +126,7 @@ function ldapProcessCards(telephoneBook, addressBooks) {
 function ldapProcessCard(vcf, prefix, fullname, duplicates, uniqueEntries) {
     var e_3, _a, e_4, _b;
     // entry name
-    var entryName = (0, utils_1.utilNameFormat)(vcf.names[0], vcf.names[1], vcf.org, fullname);
+    var entryName = (0, utils_1.utilNameFormat)(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -172,8 +172,8 @@ function ldapProcessCard(vcf, prefix, fullname, duplicates, uniqueEntries) {
         finally { if (e_4) throw e_4.error; }
     }
     var contact = {};
-    contact.surname = vcf.names[0];
-    contact.givenName = vcf.names[1];
+    contact.surname = vcf.lastName;
+    contact.givenName = vcf.firstName;
     if (telephony.home.length > 0)
         contact.homePhone = telephony.home[0];
     if (telephony.mobile.length > 0)

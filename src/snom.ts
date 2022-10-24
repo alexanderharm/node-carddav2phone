@@ -88,7 +88,7 @@ function snomXcapProcessCards (telephoneBook: any, addressBooks: any): any
             let vcf = utilParseVcard(vcard)
 
             // skip if no name or telephone number
-            if (vcf.names.length === 0) continue
+            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0) continue
             if (vcf.tels.length === 0) continue
 
             // check for dial prefix
@@ -135,7 +135,7 @@ function snomXcapProcessCards (telephoneBook: any, addressBooks: any): any
 function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[], xcapUniqueNumbers: string[]): any
 {
     // entry name
-    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
 
     // check for duplicates
     if (!duplicates) {
@@ -217,7 +217,7 @@ function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], pref
                     {
                         _attr: {
                             name: 'surname',
-                            value: vcf.names[0]
+                            value: vcf.lastName
                         }
                     }
                 ]
@@ -227,7 +227,7 @@ function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], pref
                     {
                         _attr: {
                             name: 'given_name',
-                            value: vcf.names[1]
+                            value: vcf.firstName
                         }
                     }
                 ]
@@ -237,7 +237,7 @@ function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], pref
                     {
                         _attr: {
                             name: 'company',
-                            value: vcf.org
+                            value: vcf.orgName
                         }
                     }
                 ]

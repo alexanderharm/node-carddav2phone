@@ -82,8 +82,8 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
             // parse vCard
             let vcf = utilParseVcard(vcard)
 
-            // skip if no name or telephone number
-            if (vcf.names.length === 0) continue
+            // skip if no name no org or telephone number
+            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0) continue
             if (vcf.tels.length === 0) continue
 
             // check for dial prefix
@@ -109,11 +109,7 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
  function pascomCsvProcessCard(vcf: any, fullname: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
  {   
      // entry name
-     let lastName = utilNameSanitize(vcf.names[0]) 
-     let firstName = utilNameSanitize(vcf.names[1])
-     let orgName = utilNameSanitize(vcf.org)
-     lastName = lastName === '' && firstName === '' ? orgName : lastName
-     let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+     let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
  
      // check for duplicates
      if (!duplicates) {
@@ -197,9 +193,9 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
 
      return {
          displayName: entryName,
-         firstName: firstName,
-         lastName: lastName,
-         orgName: orgName,
+         firstName: vcf.firstName,
+         lastName: vcf.lastName,
+         orgName: vcf.orgName,
          work: numberWork,
          mobile: numberMobile,
          home: numberHome,

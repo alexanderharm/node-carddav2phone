@@ -69,7 +69,7 @@ function ldapProcessCards (telephoneBook: any, addressBooks: any): any
             let vcf = utilParseVcard(vcard)
 
            // skip if no name or telephone number
-           if (vcf.names.length === 0) continue
+           if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0) continue
            if (vcf.tels.length === 0) continue
 
            // check for dial prefix
@@ -95,7 +95,7 @@ function ldapProcessCards (telephoneBook: any, addressBooks: any): any
 function ldapProcessCard(vcf: any, prefix: string, fullname: string[], duplicates: boolean, uniqueEntries: string[]): any
 {
     // entry name
-    let entryName = utilNameFormat(vcf.names[0], vcf.names[1], vcf.org, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
 
     // check for duplicates
     if (!duplicates) {
@@ -127,8 +127,8 @@ function ldapProcessCard(vcf: any, prefix: string, fullname: string[], duplicate
     }
 
     let contact: any = {}
-    contact.surname = vcf.names[0]
-    contact.givenName = vcf.names[1]
+    contact.surname = vcf.lastName
+    contact.givenName = vcf.firstName
     if (telephony.home.length > 0) contact.homePhone = telephony.home[0]
     if (telephony.mobile.length > 0) contact.mobile = telephony.mobile[0]
     if (telephony.work.length > 0) contact.telephoneNumber = telephony.work[0]
