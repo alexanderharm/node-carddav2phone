@@ -123,7 +123,10 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
      // iterate through all numbers
      for (let tel of vcf.tels)
      {
-         entries.push({type: tel.type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00')})
+        if (tel.number)
+        {
+            entries.push({type: tel.type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00')})
+        }
      }
    
      // if empty return nothing
@@ -151,7 +154,10 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
      // iterate through all numbers
      for (let fax of vcf.faxs)
      {
-         entries.push({type: fax.type, number: (prefix === '' ? fax.number : prefix + fax.number).replace('+', '00')})
+        if (fax.number)
+        {
+            entries.push({type: fax.type, number: (prefix === '' ? fax.number : prefix + fax.number).replace('+', '00')})
+        }
      }
  
      // sort by type order

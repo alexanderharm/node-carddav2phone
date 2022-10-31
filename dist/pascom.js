@@ -170,7 +170,9 @@ function pascomCsvProcessCard(vcf, fullname, prefix, duplicates, uniqueEntries) 
         // iterate through all numbers
         for (var _g = __values(vcf.tels), _h = _g.next(); !_h.done; _h = _g.next()) {
             var tel = _h.value;
-            entries.push({ type: tel.type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00') });
+            if (tel.number) {
+                entries.push({ type: tel.type, number: (prefix === '' ? tel.number : prefix + tel.number).replace('+', '00') });
+            }
         }
     }
     catch (e_3_1) { e_3 = { error: e_3_1 }; }
@@ -212,7 +214,9 @@ function pascomCsvProcessCard(vcf, fullname, prefix, duplicates, uniqueEntries) 
         // iterate through all numbers
         for (var _j = __values(vcf.faxs), _k = _j.next(); !_k.done; _k = _j.next()) {
             var fax = _k.value;
-            entries.push({ type: fax.type, number: (prefix === '' ? fax.number : prefix + fax.number).replace('+', '00') });
+            if (fax.number) {
+                entries.push({ type: fax.type, number: (prefix === '' ? fax.number : prefix + fax.number).replace('+', '00') });
+            }
         }
     }
     catch (e_5_1) { e_5 = { error: e_5_1 }; }

@@ -149,6 +149,7 @@ function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], pref
     // iterate through all numbers
     for (let tel of vcf.tels)
     {
+        if (!tel.number) continue
         // check for duplicate phone number
         if (xcapUniqueNumbers.indexOf(tel.number) > -1) {
             let errorMsg: string = 'Duplicate number (' + tel.number + ') on ' + entryName

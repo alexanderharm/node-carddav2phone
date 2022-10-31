@@ -191,6 +191,8 @@ function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEnt
         // iterate through all numbers
         for (var _d = __values(vcf.tels), _e = _d.next(); !_e.done; _e = _d.next()) {
             var tel = _e.value;
+            if (!tel.number)
+                continue;
             // check for duplicate phone number
             if (xcapUniqueNumbers.indexOf(tel.number) > -1) {
                 var errorMsg = 'Duplicate number (' + tel.number + ') on ' + entryName;
