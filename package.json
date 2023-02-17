@@ -24,16 +24,17 @@
   "author": "Alexander Harm",
   "license": "MIT",
   "dependencies": {
-    "awesome-phonenumber": "^4.1.0",
+    "awesome-phonenumber": "^5.1.0",
     "comment-json": "^4.2.3",
     "dav": "^1.8.0",
     "es6-promise": "^4.2.8",
     "fs-extra": "^11.1.0",
+    "got": "^12.5.3",
     "iconv-lite": "^0.6.3",
     "jsonexport": "^3.2.0",
     "ldapjs": "^2.3.3",
     "md5": "^2.3.0",
-    "nodemailer": "^6.8.0",
+    "nodemailer": "^6.9.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "shallow-equal-object": "^1.1.1",
@@ -42,13 +43,13 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@types/fs-extra": "^9.0.13",
+    "@types/fs-extra": "^11.0.1",
     "@types/jsonexport": "^3.0.2",
     "@types/md5": "^2.3.2",
-    "@types/node": "^18.11.15",
+    "@types/node": "^18.13.0",
     "@types/xml": "^1.0.8",
     "@types/xml2js": "^0.4.11",
     "semver": "^7.3.8",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.5"
   }
 }

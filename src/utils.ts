@@ -1,6 +1,6 @@
 import json = require('comment-json')
 import fs = require('fs-extra')
-import PhoneNumber from 'awesome-phonenumber'
+import {parsePhoneNumber, ParsedPhoneNumber} from 'awesome-phonenumber'
 import {Promise} from 'es6-promise'
 const Vcf = require('vcf')
 import Xml2js = require('xml2js')
@@ -83,7 +83,7 @@ export function utilNameSanitize (name: string): string
  * convert number to PhoneNumber
  * @param number 
  */
-export function utilNumberConvert (number: string): PhoneNumber
+export function utilNumberConvert (number: string): ParsedPhoneNumber
 {
 
     // try to convert number into e164 format
@@ -101,8 +101,15 @@ export function utilNumberConvert (number: string): PhoneNumber
     if (number.length < 8 && /^[^0]/.test(number)) number = settings.telephony.areaCode + number
 
     // check if region code can be guessed and if not set it with default
-    let phoneNumber = new PhoneNumber(number)
-    if (!phoneNumber.getRegionCode()) phoneNumber = new PhoneNumber(number, settings.telephony.countryCode)
+    let phoneNumber = parsePhoneNumber(number)
+    if (phoneNumber.valid)
+    {
+        if (!phoneNumber.regionCode) phoneNumber = parsePhoneNumber(number, {regionCode: settings.telephony.countryCode})
+    }
+    else
+    {
+        phoneNumber = parsePhoneNumber(number, {regionCode: settings.telephony.countryCode})
+    }
     
     return phoneNumber
 }
@@ -112,12 +119,12 @@ export function utilNumberConvert (number: string): PhoneNumber
  * @param type 
  * @param number 
  */
-export function utilNumberGetType (type: string|string[], number: PhoneNumber): string|undefined
+export function utilNumberGetType (type: string|string[], number: ParsedPhoneNumber): string|undefined
 {
     // normalize
     if (!Array.isArray(type)) type = [ type ]
   
-    if (number.isMobile()) return 'mobile'
+    if (number.typeIsMobile) return 'mobile'
     else if (type.length < 2) return 'home'
     else if (type.indexOf('voice') > -1)
     {
@@ -161,17 +168,19 @@ export function utilNumberGetType (type: string|string[], number: PhoneNumber): 
  * sanitize number
  * @param phoneNumber 
  */
-export function utilNumberSanitize (phoneNumber: PhoneNumber): string
+export function utilNumberSanitize (phoneNumber: ParsedPhoneNumber): string
 {
-    if (settings.telephony.stripCountryCode && phoneNumber.getRegionCode() === settings.telephony.countryCode)
+    if (settings.telephony.stripCountryCode && phoneNumber.regionCode === settings.telephony.countryCode)
     {
         if (settings.telephony.stripAreaCode) {
             let reAreaCode = new RegExp('^' + settings.telephony.areaCode)
-            return phoneNumber.getNumber('national').replace(/[^0-9]/g, '').replace(reAreaCode, '')
+            if (phoneNumber.number) return phoneNumber.number.national.replace(/[^0-9]/g, '').replace(reAreaCode, '')
         }
-        return phoneNumber.getNumber('national').replace(/[^0-9]/g, '')
+        if (phoneNumber.number)return phoneNumber.number.national.replace(/[^0-9]/g, '')
     }
-    return phoneNumber.getNumber('e164')
+    if (phoneNumber.number) return phoneNumber.number.e164
+
+    return ''
 }
 
 /**
