@@ -20,16 +20,19 @@ Refer to `settings.example.json` for all configuration options.
 
 * Running:
 
-```
-# change into this directory
-cd /path/to/node-carddav2phone
+    * execute the script (includes autoupdates, dependencies installation, requires working node, npm, git)
 
-# execute
-node dist/index.js
-
-# force update
-node dist/index.js -f|--force
+```bash
+/path/to/node-carddav2phone/carddav2phone.sh
 ```
+
+    * change into dir and run via node
+
+```bash
+cd /path/to/node-carddav2phone && node dist/index.js
+```
+
+    * to force update destinations add `-f` or `--force` as parameter
 
 ***Breaking Changes in v2.x: CardDAV settings are now configured per Destination to allow for different CardDAV accounts per device/phonebook***
 
