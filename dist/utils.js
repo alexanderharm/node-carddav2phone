@@ -10,14 +10,11 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.utilParseXml = exports.utilParseVcard = exports.utilNumberValid = exports.utilNumberSanitize = exports.utilEmailGetType = exports.utilFaxGetType = exports.utilNumberGetType = exports.utilNumberConvert = exports.utilNameSanitize = exports.utilNameFormat = exports.utilOrgName = exports.settings = void 0;
 var json = require("comment-json");
 var fs = require("fs-extra");
-var awesome_phonenumber_1 = __importDefault(require("awesome-phonenumber"));
+var awesome_phonenumber_1 = require("awesome-phonenumber");
 var es6_promise_1 = require("es6-promise");
 var Vcf = require('vcf');
 var Xml2js = require("xml2js");
@@ -92,9 +89,14 @@ function utilNumberConvert(number) {
     if (number.length < 8 && /^[^0]/.test(number))
         number = exports.settings.telephony.areaCode + number;
     // check if region code can be guessed and if not set it with default
-    var phoneNumber = new awesome_phonenumber_1.default(number);
-    if (!phoneNumber.getRegionCode())
-        phoneNumber = new awesome_phonenumber_1.default(number, exports.settings.telephony.countryCode);
+    var phoneNumber = (0, awesome_phonenumber_1.parsePhoneNumber)(number);
+    if (phoneNumber.valid) {
+        if (!phoneNumber.regionCode)
+            phoneNumber = (0, awesome_phonenumber_1.parsePhoneNumber)(number, { regionCode: exports.settings.telephony.countryCode });
+    }
+    else {
+        phoneNumber = (0, awesome_phonenumber_1.parsePhoneNumber)(number, { regionCode: exports.settings.telephony.countryCode });
+    }
     return phoneNumber;
 }
 exports.utilNumberConvert = utilNumberConvert;
@@ -107,7 +109,7 @@ function utilNumberGetType(type, number) {
     // normalize
     if (!Array.isArray(type))
         type = [type];
-    if (number.isMobile())
+    if (number.typeIsMobile)
         return 'mobile';
     else if (type.length < 2)
         return 'home';
@@ -153,14 +155,18 @@ exports.utilEmailGetType = utilEmailGetType;
  * @param phoneNumber
  */
 function utilNumberSanitize(phoneNumber) {
-    if (exports.settings.telephony.stripCountryCode && phoneNumber.getRegionCode() === exports.settings.telephony.countryCode) {
+    if (exports.settings.telephony.stripCountryCode && phoneNumber.regionCode === exports.settings.telephony.countryCode) {
         if (exports.settings.telephony.stripAreaCode) {
             var reAreaCode = new RegExp('^' + exports.settings.telephony.areaCode);
-            return phoneNumber.getNumber('national').replace(/[^0-9]/g, '').replace(reAreaCode, '');
+            if (phoneNumber.number)
+                return phoneNumber.number.national.replace(/[^0-9]/g, '').replace(reAreaCode, '');
         }
-        return phoneNumber.getNumber('national').replace(/[^0-9]/g, '');
+        if (phoneNumber.number)
+            return phoneNumber.number.national.replace(/[^0-9]/g, '');
     }
-    return phoneNumber.getNumber('e164');
+    if (phoneNumber.number)
+        return phoneNumber.number.e164;
+    return '';
 }
 exports.utilNumberSanitize = utilNumberSanitize;
 /**
