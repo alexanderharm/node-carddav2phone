@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.argv = void 0;
 var utils_1 = require("./utils");
 var carddav_1 = require("./carddav");
 var fritzbox_1 = require("./fritzbox");
@@ -8,6 +9,7 @@ var pascom_1 = require("./pascom");
 var snom_1 = require("./snom");
 var yealink_1 = require("./yealink");
 var es6_promise_1 = require("es6-promise");
+exports.argv = require('minimist')(process.argv.slice(2));
 /**
  * handle all destination phone updates
  * @param accountsVcards

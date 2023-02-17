@@ -6,6 +6,7 @@ import {pascomHandler} from './pascom'
 import {snomHandler} from './snom'
 import {yealinkHandler} from './yealink'
 import {Promise} from 'es6-promise'
+export const argv = require('minimist')(process.argv.slice(2))
 
 /**
  * handle all destination phone updates

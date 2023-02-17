@@ -18,6 +18,19 @@ A CardDAV to IP phones converter/importer. It currently supports
 
 Refer to `settings.example.json` for all configuration options.
 
+* Running:
+
+```
+# change into this directory
+cd /path/to/node-carddav2phone
+
+# execute
+node dist/index.js
+
+# force update
+node dist/index.js -f|--force
+```
+
 ***Breaking Changes in v2.x: CardDAV settings are now configured per Destination to allow for different CardDAV accounts per device/phonebook***
 
 ## AVM FRITZ!Box

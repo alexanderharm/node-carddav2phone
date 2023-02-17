@@ -37,6 +37,7 @@ var __values = (this && this.__values) || function(o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.carddavRetrieve = void 0;
+var index_1 = require("./index");
 var fs = require("fs-extra");
 /**
  * fix dav lib for iCloud
@@ -92,10 +93,12 @@ function carddavRetrieve(settings) {
             }
             (_b = carddavVcards[i]).push.apply(_b, __spreadArray([], __read(res[0]), false));
             // compare current and previous contacts
-            if ((0, shallow_equal_object_1.shallowEqual)(res[0], res[1])) {
-                console.log(accountname + ': no updates');
-                carddavResults.push(false);
-                return false;
+            if (!(index_1.argv.f || index_1.argv.force)) {
+                if ((0, shallow_equal_object_1.shallowEqual)(res[0], res[1])) {
+                    console.log(accountname + ': no updates');
+                    carddavResults.push(false);
+                    return false;
+                }
             }
             // write output to file
             console.log(accountname + ': updates available');

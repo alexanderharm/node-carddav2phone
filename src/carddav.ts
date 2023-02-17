@@ -1,3 +1,4 @@
+import { argv } from './index'
 import fs = require('fs-extra')
 /**
  * fix dav lib for iCloud
@@ -69,12 +70,16 @@ export function carddavRetrieve (settings:any): Promise<any[]>
             carddavVcards[i].push(...res[0])
 
             // compare current and previous contacts
-            if (shallowEqual(res[0], res[1])) 
+            if (!(argv.f || argv.force))
             {
-                console.log(accountname + ': no updates')
-                carddavResults.push(false)
-                return false
+                if (shallowEqual(res[0], res[1])) 
+                {
+                    console.log(accountname + ': no updates')
+                    carddavResults.push(false)
+                    return false
+                }
             }
+            
             // write output to file
             console.log(accountname + ': updates available')
             carddavResults.push(true)
