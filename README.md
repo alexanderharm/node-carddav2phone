@@ -2,11 +2,11 @@
 
 A CardDAV to IP phones converter/importer. It currently supports
 
-* Source:
+### Source:
 
     * Any CardDAV server (tested with iCloud and Nextcloud)
 
-* Destinations:
+### Destinations:
 
     * AVM FRITZ!Box (tested with 7360, 7490)
     * LDAP (tested with OpenDirectory)
@@ -18,21 +18,21 @@ A CardDAV to IP phones converter/importer. It currently supports
 
 Refer to `settings.example.json` for all configuration options.
 
-* Running:
+### Running:
 
-    * execute the script (includes autoupdates, dependencies installation, requires working node, npm, git)
+* execute the script (includes autoupdates, dependencies installation, requires working node, npm, git)
 
 ```bash
 /path/to/node-carddav2phone/carddav2phone.sh
 ```
 
-    * change into dir and run via node
+* change into dir and run via node
 
 ```bash
 cd /path/to/node-carddav2phone && node dist/index.js
 ```
 
-    * to force update destinations add `-f` or `--force` as parameter
+* to force update destinations add `-f` or `--force` as parameter
 
 ***Breaking Changes in v2.x: CardDAV settings are now configured per Destination to allow for different CardDAV accounts per device/phonebook***
 
