@@ -1,19 +1,19 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { argv } from './index.js';
 import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-/**
- * fix dav lib for iCloud
- */
-var davBefore = fs.readFileSync(__dirname + '/../node_modules/dav/dav.js', { encoding: 'utf8' });
-var davAfter = davBefore
-    .replace(/\{ name: 'displayname', namespace: ns\.DAV \}, /g, '')
-    .replace(/res\.props\.displayname/g, '\'card\'');
-fs.writeFileSync(__dirname + '/../node_modules/dav/dav.js', davAfter, 'utf8');
-import dav from 'dav';
-//import {Promise} from 'es6-promise'
+import { DAVClient } from 'tsdav';
 import { shallowEqual } from 'shallow-equal-object';
 //dav.debug.enabled = true
 /**
@@ -29,14 +29,18 @@ export function carddavRetrieve(settings) {
     let vcardPromises = Promise.resolve();
     for (let i = 0; i < settings.carddav.accounts.length; i++) {
         let account = settings.carddav.accounts[i];
+        const client = new DAVClient({
+            serverUrl: account.url,
+            credentials: {
+                username: account.username,
+                password: account.password,
+            },
+            authMethod: 'Basic',
+            defaultAccountType: 'carddav',
+        });
         let accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_');
         let username = account.username.replace(/[^\w-]/g, '_');
         let fname = __dirname + '/../account_' + accountname + '_' + username + '.json';
-        let xhr = new dav.transport.Basic(new dav.Credentials({
-            username: account.username,
-            password: account.password
-        }));
-        let client = new dav.Client(xhr);
         // get contacts
         let vcardPromise = Promise.all([
             getVcards(account, client),
@@ -83,24 +87,23 @@ function getPrevVcards(accountname) {
     });
 }
 function getVcards(account, client) {
-    let vcards = [];
-    return client.createAccount({
-        accountType: 'carddav',
-        server: account.url,
-        loadCollections: true,
-        loadObjects: true
-    })
-        .then((res) => {
-        // iterate address books
-        for (let addressBook of res.addressBooks) {
-            for (let object of addressBook.objects) {
-                vcards.push(object.data.props.addressData);
+    return __awaiter(this, void 0, void 0, function* () {
+        let vcards = [];
+        try {
+            yield client.login();
+            const addressBooks = yield client.fetchAddressBooks();
+            // iterate address books
+            for (let addressBook of addressBooks) {
+                const objects = yield client.fetchVCards({ addressBook: addressBook });
+                for (let object of objects) {
+                    vcards.push(object.data);
+                }
             }
+            return vcards;
         }
-        return vcards;
-    })
-        .catch((err) => {
-        console.log(err);
-        return [];
+        catch (e) {
+            console.error(`CardDAV: ${e.message}`);
+            return [];
+        }
     });
 }

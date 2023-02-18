@@ -6,16 +6,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * fix dav lib for iCloud
- */
-var davBefore = fs.readFileSync(__dirname + '/../node_modules/dav/dav.js', {encoding: 'utf8'})
-var davAfter = davBefore
-  .replace(/\{ name: 'displayname', namespace: ns\.DAV \}, /g, '')
-  .replace(/res\.props\.displayname/g, '\'card\'')
-fs.writeFileSync(__dirname + '/../node_modules/dav/dav.js', davAfter, 'utf8')
-import dav from 'dav'
-//import {Promise} from 'es6-promise'
+import { DAVClient } from 'tsdav'
 import {shallowEqual} from 'shallow-equal-object'
 
 //dav.debug.enabled = true
@@ -39,17 +30,18 @@ export function carddavRetrieve (settings:any): Promise<any[]>
     for (let i = 0; i < settings.carddav.accounts.length; i++)
     {
         let account = settings.carddav.accounts[i]
+        const client = new DAVClient({
+            serverUrl: account.url,
+            credentials: {
+                username: account.username,
+                password: account.password,
+              },
+              authMethod: 'Basic',
+              defaultAccountType: 'carddav',
+        })
         let accountname = account.url.replace(/^http[s]{0,1}:\/\//, '').replace(/[^\w-]/g, '_') 
         let username = account.username.replace(/[^\w-]/g, '_')
         let fname = __dirname + '/../account_' + accountname + '_' + username + '.json'
-        let xhr = new dav.transport.Basic(
-            new dav.Credentials({
-                username: account.username,
-                password: account.password
-            })
-        )
-        
-        let client = new dav.Client(xhr)
 
         // get contacts
         let vcardPromise = Promise.all([
@@ -106,28 +98,30 @@ function getPrevVcards (accountname: string)
     })
 }
 
-function getVcards (account: any, client: any)
+async function getVcards (account: any, client: any)
 {
     let vcards: any[] = []
-    return client.createAccount({
-        accountType: 'carddav',
-        server: account.url,
-        loadCollections: true,
-        loadObjects: true 
-    })
-    .then((res: any) => {
+
+    try
+    {
+        await client.login()
+        const addressBooks = await client.fetchAddressBooks()
+    
         // iterate address books
-        for (let addressBook of res.addressBooks)
+        for (let addressBook of addressBooks)
         {
-            for (let object of addressBook.objects)
+            const objects = await client.fetchVCards({addressBook: addressBook})
+            for (let object of objects)
             {
-                vcards.push(object.data.props.addressData)
+                vcards.push(object.data)
             }
         }
         return vcards
-    })
-    .catch((err: any) => {
-        console.log(err)
+    }
+    catch (e: any)
+    {
+        console.error(`CardDAV: ${e.message}`)
         return []
-    })
+    }
+
 }

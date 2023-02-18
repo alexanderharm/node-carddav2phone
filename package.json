@@ -1,6 +1,6 @@
 {
   "name": "node-carddav2phone",
-  "version": "2.2.0",
+  "version": "2.5.0",
   "description": "A CardDAV to IP phones converter based on node.js",
   "type": "module",
   "exports": "./dist/index.js",
@@ -27,7 +27,6 @@
   "dependencies": {
     "awesome-phonenumber": "^5.1.0",
     "comment-json": "^4.2.3",
-    "dav": "^1.8.0",
     "es6-promise": "^4.2.8",
     "formdata-node": "^5.0.0",
     "fs-extra": "^11.1.0",
@@ -39,12 +38,12 @@
     "minimist": "^1.2.8",
     "nodemailer": "^6.9.1",
     "shallow-equal-object": "^1.1.1",
+    "tsdav": "^2.0.3",
     "vcf": "^2.1.1",
     "xml": "^1.0.1",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@types/dav": "^1.7.4",
     "@types/fs-extra": "^11.0.1",
     "@types/jsonexport": "^3.0.2",
     "@types/ldapjs": "^2.2.5",
