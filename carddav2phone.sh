@@ -32,7 +32,7 @@ fi
 cd "$(dirname "$0")" || exit 1
 
 # self update and install dependencies
-$git pull --force
+$git pull --force --rebase
 $npm ci
 
 # run node app
