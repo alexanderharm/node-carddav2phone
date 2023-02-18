@@ -33,7 +33,7 @@ cd "$(dirname "$0")" || exit 1
 
 # self update and install dependencies
 $git pull --force --rebase
-$npm ci
+$npm ci --omit dev --prefer-offline --no-audit --cache .npm
 
 # run node app
 $node dist/index.js "${args[@]}"
