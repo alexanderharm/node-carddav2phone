@@ -1,7 +1,7 @@
-import {utilNameFormat, utilParseVcard} from './utils'
-import fs = require('fs-extra')
-import {Promise} from 'es6-promise'
-import xml = require('xml')
+import {utilNameFormat, utilParseVcard} from './utils.js'
+import fs from 'fs-extra'
+//import {Promise} from 'es6-promise'
+import xml from 'xml'
 
 /**
  * handler for Yealink

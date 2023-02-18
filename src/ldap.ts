@@ -1,6 +1,6 @@
-import {utilNameFormat, utilParseVcard} from './utils'
-const ldap = require('ldapjs')
-import {Promise} from 'es6-promise'
+import {utilNameFormat, utilParseVcard} from './utils.js'
+import ldap from 'ldapjs'
+//import {Promise} from 'es6-promise'
 
 /**
  * handler for LDAP

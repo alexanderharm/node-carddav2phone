@@ -1,7 +1,7 @@
-import {utilNameFormat, utilNameSanitize, utilParseVcard} from './utils'
-import jsonexport from "jsonexport/dist"
-import fs = require('fs-extra')
-import {Promise} from 'es6-promise'
+import {utilNameFormat, utilNameSanitize, utilParseVcard} from './utils.js'
+import jsonexport from "jsonexport"
+import fs from 'fs-extra'
+//import {Promise} from 'es6-promise'
 
 /**
  * handler for pascom

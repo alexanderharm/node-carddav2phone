@@ -1,9 +1,14 @@
-import json = require('comment-json')
-import fs = require('fs-extra')
+import json from 'comment-json'
+import fs from 'fs-extra'
 import {parsePhoneNumber, ParsedPhoneNumber} from 'awesome-phonenumber'
-import {Promise} from 'es6-promise'
-const Vcf = require('vcf')
-import Xml2js = require('xml2js')
+//import {Promise} from 'es6-promise'
+import Vcf from 'vcf'
+import Xml2js from 'xml2js'
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface settingsInterface
 {
@@ -204,26 +209,26 @@ export function utilParseVcard (vcard: any): any
     let vcf = new Vcf().parse(vcard)
 
     // get uid
-    let uid: string = vcf.get('uid').valueOf()
+    let uid: string = vcf.get('uid').valueOf().toString()
 
     // get array of names
     let names: string[] = []
     let lastName: string = ''
     let firstName: string = ''
-    if (vcf.get('n')) names = vcf.get('n').valueOf().split(';').map((name: string) => name.trim())
+    if (vcf.get('n')) names = vcf.get('n').valueOf().toString().split(';').map((name: string) => name.trim())
     if (names[0] && names[0].length > 0) lastName = utilNameSanitize(names[0])
     if (names[1] && names[1].length > 0) firstName = utilNameSanitize(names[1])
 
     // get org name
     let orgs: string[] = []
     let orgName: string = ''
-    if (vcf.get('org')) orgs = vcf.get('org').valueOf().split(';').map((org: string) => org.trim())
+    if (vcf.get('org')) orgs = vcf.get('org').valueOf().toString().split(';').map((org: string) => org.trim())
     if (orgs[0] && orgs[0].length > 0 && orgs[1] && orgs[1].length > 0) orgName = utilNameSanitize(orgs[1]) + ' - ' + utilNameSanitize(orgs[0])
     else if (orgs[0] && orgs[0].length > 0) orgName = utilNameSanitize(orgs[0])
 
     // get array of telephone numbers
     let tels: any[] = []
-    let telstmp: any[] = vcf.get('tel') ? vcf.get('tel') : []
+    let telstmp = vcf.get('tel') ? vcf.get('tel') : []
     if (!Array.isArray(telstmp)) telstmp = [ telstmp ]
     for (let tel of telstmp) {
         // test if number
@@ -231,6 +236,8 @@ export function utilParseVcard (vcard: any): any
         // convert to number
         let number = utilNumberConvert(tel.valueOf())
         // determine type
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         let type = utilNumberGetType(tel.type, number)
         // store number if of type voice
         if (type) tels.push({type: type, number: utilNumberSanitize(number)})
@@ -238,7 +245,7 @@ export function utilParseVcard (vcard: any): any
 
     // get array of fax numbers
     let faxs: any[] = []
-    let faxstmp: any[] = vcf.get('tel') ? vcf.get('tel') : []
+    let faxstmp = vcf.get('tel') ? vcf.get('tel') : []
     if (!Array.isArray(faxstmp)) faxstmp = [ faxstmp ]
     for (let fax of faxstmp) {
         // test if number
@@ -246,6 +253,8 @@ export function utilParseVcard (vcard: any): any
         // convert to number
         let number = utilNumberConvert(fax.valueOf())
         // determine type
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         let type = utilFaxGetType(fax.type)
         // store number if of type fax
         if (type) faxs.push({type: type, number: utilNumberSanitize(number)})
@@ -253,20 +262,22 @@ export function utilParseVcard (vcard: any): any
 
     // get array of email addresses
     let emails: any[] = []
-    let emailstmp: any[] = vcf.get('email') ? vcf.get('email') : []
+    let emailstmp = vcf.get('email') ? vcf.get('email') : []
     if (!Array.isArray(emailstmp)) emailstmp = [ emailstmp ]
     for (let email of emailstmp) {
         // verify if email is valid
         if (!email.valueOf()) continue
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.valueOf())) continue
         // determine type
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         let type = utilEmailGetType(email.type)
         // store email
         emails.push({type: type, address: email.valueOf()})
     }
 
     // get note
-    let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().replace(/\\,/g, ',') : ''
+    let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().toString().replace(/\\,/g, ',') : ''
 
     return {uid, lastName,firstName, orgName, tels, faxs, emails, note}
 }

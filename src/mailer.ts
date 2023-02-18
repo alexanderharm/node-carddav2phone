@@ -1,6 +1,6 @@
-import {settings} from './utils'
-import {Promise} from 'es6-promise'
-const nodemailer = require('nodemailer')
+import {settings} from './utils.js'
+//import {Promise} from 'es6-promise'
+import nodemailer from 'nodemailer'
 
 export function sendMail (subject: string, msg: string): any
 {

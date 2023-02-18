@@ -1,12 +1,13 @@
-import {settings} from './utils'
-import {carddavRetrieve} from './carddav'
-import {fritzBoxHandler} from './fritzbox'
-import {ldapHandler} from './ldap'
-import {pascomHandler} from './pascom'
-import {snomHandler} from './snom'
-import {yealinkHandler} from './yealink'
-import {Promise} from 'es6-promise'
-export const argv = require('minimist')(process.argv.slice(2))
+import {settings} from './utils.js'
+import {carddavRetrieve} from './carddav.js'
+import {fritzBoxHandler} from './fritzbox.js'
+import {ldapHandler} from './ldap.js'
+import {pascomHandler} from './pascom.js'
+import {snomHandler} from './snom.js'
+import {yealinkHandler} from './yealink.js'
+//import {Promise} from 'es6-promise'
+import minimist from 'minimist'
+export const argv = minimist(process.argv.slice(2))
 
 /**
  * handle all destination phone updates
@@ -15,7 +16,7 @@ export const argv = require('minimist')(process.argv.slice(2))
  */
 function phoneHandlers (accountsVcards: any, settings: any): Promise<boolean>
 {
-    let handlers: Promise<any>[] = []
+    let handlers: any = []
     if (settings.fritzbox) handlers.push(fritzBoxHandler(accountsVcards, settings.fritzbox))
     if (settings.ldap) handlers.push(ldapHandler(accountsVcards, settings.ldap))
     if (settings.pascom) handlers.push(pascomHandler(accountsVcards, settings.pascom))

@@ -1,46 +1,44 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.argv = void 0;
-var utils_1 = require("./utils");
-var carddav_1 = require("./carddav");
-var fritzbox_1 = require("./fritzbox");
-var ldap_1 = require("./ldap");
-var pascom_1 = require("./pascom");
-var snom_1 = require("./snom");
-var yealink_1 = require("./yealink");
-var es6_promise_1 = require("es6-promise");
-exports.argv = require('minimist')(process.argv.slice(2));
+import { settings } from './utils.js';
+import { carddavRetrieve } from './carddav.js';
+import { fritzBoxHandler } from './fritzbox.js';
+import { ldapHandler } from './ldap.js';
+import { pascomHandler } from './pascom.js';
+import { snomHandler } from './snom.js';
+import { yealinkHandler } from './yealink.js';
+//import {Promise} from 'es6-promise'
+import minimist from 'minimist';
+export const argv = minimist(process.argv.slice(2));
 /**
  * handle all destination phone updates
  * @param accountsVcards
  * @param settings
  */
 function phoneHandlers(accountsVcards, settings) {
-    var handlers = [];
+    let handlers = [];
     if (settings.fritzbox)
-        handlers.push((0, fritzbox_1.fritzBoxHandler)(accountsVcards, settings.fritzbox));
+        handlers.push(fritzBoxHandler(accountsVcards, settings.fritzbox));
     if (settings.ldap)
-        handlers.push((0, ldap_1.ldapHandler)(accountsVcards, settings.ldap));
+        handlers.push(ldapHandler(accountsVcards, settings.ldap));
     if (settings.pascom)
-        handlers.push((0, pascom_1.pascomHandler)(accountsVcards, settings.pascom));
+        handlers.push(pascomHandler(accountsVcards, settings.pascom));
     if (settings.snom)
-        handlers.push((0, snom_1.snomHandler)(accountsVcards, settings.snom));
+        handlers.push(snomHandler(accountsVcards, settings.snom));
     if (settings.yealink)
-        handlers.push((0, yealink_1.yealinkHandler)(accountsVcards, settings.yealink));
-    return es6_promise_1.Promise.all(handlers).then(function (res) { return es6_promise_1.Promise.resolve(true); });
+        handlers.push(yealinkHandler(accountsVcards, settings.yealink));
+    return Promise.all(handlers).then((res) => Promise.resolve(true));
 }
 /**
  * create clients
  */
-(0, carddav_1.carddavRetrieve)(utils_1.settings)
-    .then(function (res) {
+carddavRetrieve(settings)
+    .then((res) => {
     if (res[0].indexOf(true) > -1) {
         console.log('CardDAV: updates available');
-        return phoneHandlers(res[1], utils_1.settings);
+        return phoneHandlers(res[1], settings);
     }
     console.log('CardDAV: no updates available');
     return true;
 })
-    .catch(function (err) {
+    .catch((err) => {
     console.log(err);
 });

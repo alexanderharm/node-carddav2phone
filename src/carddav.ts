@@ -1,5 +1,11 @@
-import { argv } from './index'
-import fs = require('fs-extra')
+import { argv } from './index.js'
+import fs from 'fs-extra'
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /**
  * fix dav lib for iCloud
  */
@@ -8,8 +14,8 @@ var davAfter = davBefore
   .replace(/\{ name: 'displayname', namespace: ns\.DAV \}, /g, '')
   .replace(/res\.props\.displayname/g, '\'card\'')
 fs.writeFileSync(__dirname + '/../node_modules/dav/dav.js', davAfter, 'utf8')
-var dav = require('dav')
-import {Promise} from 'es6-promise'
+import dav from 'dav'
+//import {Promise} from 'es6-promise'
 import {shallowEqual} from 'shallow-equal-object'
 
 //dav.debug.enabled = true

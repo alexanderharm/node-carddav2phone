@@ -1,9 +1,11 @@
-import {utilNameFormat, utilNumberConvert, utilNumberSanitize, utilParseVcard, utilParseXml} from './utils'
-import iconv = require('iconv-lite')
-import md5 = require('md5')
-import {Promise} from 'es6-promise'
-var rp = require('request-promise-native')
-import xml = require('xml')
+import { utilNameFormat, utilNumberConvert, utilNumberSanitize, utilParseVcard, utilParseXml } from './utils.js'
+import iconv from 'iconv-lite'
+import md5 from 'md5'
+//import { Promise } from 'es6-promise'
+//var rp = require('request-promise-native')
+import got from 'got'
+import { FormData, File } from 'formdata-node'
+import xml from 'xml'
 
 /**
  * handler for Fritz!Box
@@ -204,48 +206,43 @@ function fritzBoxProcessCard(vcf: any, fullname: string[], order: string[], pref
  * get SID from Fritz!Box
  * @param settings
  */
-function fritzBoxSid (settingsFB: any): Promise<string>
+async function fritzBoxSid (settingsFB: any): Promise<string>
 {
     console.log('Fritz!Box: authenticate')
-    return Promise.resolve()
-        .then((res) => {
-            let opt = {
-                uri: 'http://' + settingsFB.url + '/login_sid.lua'
-            }
-            return rp(opt)
-        })
-        .then((res: string) => {
-            return utilParseXml(res)
-        })
-        .then((res) => {
-            let sid = res.SessionInfo.SID[0]
-            // return res if applicable
-            if (sid !== '0000000000000000') return res
-            
-            // build challenge response
-            let challenge = res.SessionInfo.Challenge[0]
-            let response = challenge + '-' + md5(iconv.encode(challenge + '-' + settingsFB.password, 'ucs2'))
-            let opt = {
-                uri: 'http://' + settingsFB.url + '/login_sid.lua',
-                qs: {
-                    username: settingsFB.username,
-                    response: response
-                }
-            }
-            return rp(opt)
-        })
-        .then((res: string) => {
-            return utilParseXml(res)
-        })
-        .then((res) => {
-            let sid = res.SessionInfo.SID[0]
-            if (sid !== '0000000000000000')
-            {
-                console.log('Fritz!Box: login successful')
-                return sid
-            }
-            return Promise.reject('Fritz!Box: login failed')
-        })
+    let { body } = await got('http://' + settingsFB.url + '/login_sid.lua')
+    let xml = await utilParseXml(body)
+    let sid = xml.SessionInfo.SID[0]
+
+    // return sid if already logged in
+    if (sid !== '0000000000000000') 
+    {
+        console.log('Fritz!Box: login successful')
+        return sid
+    }
+
+    // build challenge response
+    let challenge = xml.SessionInfo.Challenge[0]
+    let response = challenge + '-' + md5(iconv.encode(challenge + '-' + settingsFB.password, 'ucs2'))
+    let opt = {
+        searchParams: {
+            username: settingsFB.username,
+            response: response
+        }
+    };
+    
+    ({ body } = await got('http://' + settingsFB.url + '/login_sid.lua', opt))
+    xml = await utilParseXml(body)
+    sid = xml.SessionInfo.SID[0]
+
+    // return sid if successfully logged in
+    if (sid !== '0000000000000000') 
+    {
+        console.log('Fritz!Box: login successful')
+        return sid
+    }
+
+    // return failed
+    return Promise.reject('Fritz!Box: login failed')
 }
 
 /**
@@ -254,39 +251,34 @@ function fritzBoxSid (settingsFB: any): Promise<string>
  * @param telephoneBookId
  * @param settings
  */
-function fritzBoxUpdate (data: string, telephoneBookId: number, settingsFB: any): Promise<boolean> {
+async function fritzBoxUpdate (data: string, telephoneBookId: number, settingsFB: any): Promise<boolean> {
 
     // get SID from Fritz!Box
     console.log('Fritz!Box: attempting login')
-    return fritzBoxSid(settingsFB)
-    .then((sid) => {
-        // update phonebook
-        console.log('Fritz!Box: trying to update')
-        let opt = {
-            method: 'POST',
-            uri: 'http://' + settingsFB.url + '/cgi-bin/firmwarecfg',
-            formData: {
-                sid: sid,
-                PhonebookId: telephoneBookId,
-                PhonebookImportFile: {
-                    value: data,
-                    options: {
-                        filename: 'updatepb.xml',
-                        contentType: 'text/xml'
-                    }
-                }
-            }
-        }
-        return rp(opt)
-    })
-    .then((res: string) => {
+    let sid = await fritzBoxSid(settingsFB)
+    console.log('Fritz!Box: trying to update')
+    let form = new FormData()
+    form.set("sid", sid)
+    form.set("PhonebookId", telephoneBookId)
+    let file = new File([data], "updatepb.xml", {type: "text/xml"})
+    form.set("PhonebookImportFile", file)
+
+    try
+    {
+        let { body } = await got.post('http://' + settingsFB.url + '/cgi-bin/firmwarecfg', {body: form})
         // check for success
-        if (res.indexOf(settingsFB.message) > -1)
+        if (body.indexOf(settingsFB.message) > -1)
         {
             console.log('Fritz!Box: update successful')
-            return Promise.resolve(true)
+            return true
         }
         console.log('Fritz!Box: update failed')
-        return Promise.reject(res)
-    })
+        console.error(`Fritz!Box: ${body}`)
+        return false
+    }
+    catch (e: any)
+    {
+        console.error(`Fritz!Box: ${e.message}`)
+        return false
+    }
   }

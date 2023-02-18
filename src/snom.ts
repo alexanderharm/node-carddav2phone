@@ -1,8 +1,8 @@
-import {utilNameFormat, utilNameSanitize, utilParseVcard} from './utils'
-import {sendMail} from './mailer'
-import fs = require('fs-extra')
-import {Promise} from 'es6-promise'
-import xml = require('xml')
+import {utilNameFormat, utilNameSanitize, utilParseVcard} from './utils.js'
+import {sendMail} from './mailer.js'
+import fs from 'fs-extra'
+//import {Promise} from 'es6-promise'
+import xml from 'xml'
 
 /**
  * handler for Snom
