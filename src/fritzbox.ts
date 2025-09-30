@@ -3,7 +3,7 @@ import iconv from 'iconv-lite'
 import md5 from 'md5'
 //import { Promise } from 'es6-promise'
 //var rp = require('request-promise-native')
-import got from 'got'
+import got, {OptionsInit} from 'got'
 import { FormData, File } from 'formdata-node'
 import xml from 'xml'
 
@@ -81,7 +81,7 @@ function fritzBoxProcessCards (telephoneBook: any, addressBooks: any): any
             let prefix = "prefix" in account ? account.prefix : ''
 
             // process card (pass 'Full Name' and telephone numbers)
-            let entry = fritzBoxProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries)
+            let entry = fritzBoxProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries)
             if (entry) entries.push(entry)
         }
     }
@@ -109,10 +109,10 @@ function fritzBoxProcessCards (telephoneBook: any, addressBooks: any): any
  * @param duplicates
  * @param uniqueEntries
  */
-function fritzBoxProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
+function fritzBoxProcessCard(vcf: any, fullname: string[], prioVcardFullname: boolean, order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname)
 
     // check for duplicates
     if (!duplicates) {
@@ -223,14 +223,14 @@ async function fritzBoxSid (settingsFB: any): Promise<string>
     // build challenge response
     let challenge = xml.SessionInfo.Challenge[0]
     let response = challenge + '-' + md5(iconv.encode(challenge + '-' + settingsFB.password, 'ucs2'))
-    let opt = {
+    let opt: OptionsInit = {
         searchParams: {
             username: settingsFB.username,
             response: response
         }
     };
     
-    ({ body } = await got('http://' + settingsFB.url + '/login_sid.lua', opt))
+    ({body} = await got('http://' + settingsFB.url + '/login_sid.lua', opt) as any)
     xml = await utilParseXml(body)
     sid = xml.SessionInfo.SID[0]
 

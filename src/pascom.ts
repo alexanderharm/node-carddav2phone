@@ -90,7 +90,7 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
             let prefix = "prefix" in account ? account.prefix : ''
 
             // process card
-            let entry = pascomCsvProcessCard(vcf, telephoneBook.fullname, prefix, telephoneBook.duplicates, uniqueEntries)
+            let entry = pascomCsvProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, prefix, telephoneBook.duplicates, uniqueEntries)
             if (entry) entries.push(entry)
         }
     }
@@ -106,10 +106,10 @@ function pascomCsvProcessCards (telephoneBook: any, addressBooks: any): any
  * @param duplicates
  * @param uniqueEntries
  */
- function pascomCsvProcessCard(vcf: any, fullname: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
+ function pascomCsvProcessCard(vcf: any, fullname: string[], prioVcardFullname: boolean, prefix: string, duplicates: boolean, uniqueEntries: string[]): any
  {   
      // entry name
-     let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
+     let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname)
  
      // check for duplicates
      if (!duplicates) {

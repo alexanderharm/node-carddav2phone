@@ -51,6 +51,8 @@
                 "name": "Telefonbuch",
                 // define an arbitrary order of 'first' and 'last' name
                 "fullname": ["first", "last"],
+                // give priority to vCard fullname
+                "prioVcardFullname": true
                 // define an arbitrary order of 'home', 'mobile' and 'work'
                 // defaults to order of vCard if empty
                 "order": ["home", "mobile", "work"],
@@ -128,6 +130,8 @@
                     "usernames": ["telprivate1@fritz.box", "telprivate2@fritz.box"],
                     // define an arbitrary order of 'first' and 'last' name
                     "fullname": ["first", "last"],
+                    // give priority to vCard fullname
+                    "prioVcardFullname": false
                     // define an arbitrary order of 'home', 'mobile' and 'work'
                     // defaults to order of vCard if empty
                     "order": ["home", "mobile", "work"],
@@ -206,6 +210,8 @@
                 "filename": "yealink_private.xml",
                 // define an arbitrary order of 'first' and 'last' name
                 "fullname": ["first", "last"],
+                // give priority to vCard fullname
+                "prioVcardFullname": true
                 // define an arbitrary order of 'home', 'mobile' and 'work'
                 // defaults to order of vCard if empty
                 "order": ["home", "mobile", "work"],

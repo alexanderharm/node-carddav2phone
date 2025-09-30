@@ -58,7 +58,7 @@ function ldapProcessCards(telephoneBook, addressBooks) {
             // check for dial prefix
             let prefix = "prefix" in account ? account.prefix : '';
             // process card
-            let entry = ldapProcessCard(vcf, prefix, telephoneBook.fullname, telephoneBook.duplicates, uniqueEntries);
+            let entry = ldapProcessCard(vcf, prefix, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBook.duplicates, uniqueEntries);
             if (entry)
                 entries.push(entry);
         }
@@ -73,9 +73,9 @@ function ldapProcessCards(telephoneBook, addressBooks) {
   * @param duplicates
  * @param uniqueEntries
  */
-function ldapProcessCard(vcf, prefix, fullname, duplicates, uniqueEntries) {
+function ldapProcessCard(vcf, prefix, fullname, prioVcardFullname, duplicates, uniqueEntries) {
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)

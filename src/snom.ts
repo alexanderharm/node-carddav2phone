@@ -95,7 +95,7 @@ function snomXcapProcessCards (telephoneBook: any, addressBooks: any): any
             let prefix = "prefix" in account ? account.prefix : ''
 
             // process card
-            let entry = snomXcapProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries, xcapUniqueNumbers)
+            let entry = snomXcapProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries, xcapUniqueNumbers)
             if (entry) entries.push(entry)
         }
     }
@@ -132,10 +132,10 @@ function snomXcapProcessCards (telephoneBook: any, addressBooks: any): any
  * @param uniqueEntries
  * @param xcapUniqueNumbers
  */
-function snomXcapProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[], xcapUniqueNumbers: string[]): any
+function snomXcapProcessCard(vcf: any, fullname: string[], prioVcardFullname: boolean, order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[], xcapUniqueNumbers: string[]): any
 {
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname)
 
     // check for duplicates
     if (!duplicates) {
@@ -354,7 +354,7 @@ function snomTbookProcessCards (telephoneBook: any, addressBooks: any): any
             let prefix = "prefix" in account ? account.prefix : ''
 
             // process card
-            let entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries)
+            let entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries)
 
             if (entry) entries.push(...entry)
         }
@@ -377,10 +377,10 @@ function snomTbookProcessCards (telephoneBook: any, addressBooks: any): any
  * @param duplicates
  * @param uniqueEntries
  */
-function snomTbookProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
+function snomTbookProcessCard(vcf: any, fullname: string[], prioVcardFullname: boolean, order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {   
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname)
 
     // check for duplicates
     if (!duplicates) {

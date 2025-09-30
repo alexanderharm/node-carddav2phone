@@ -49,16 +49,23 @@ export function utilOrgName (vcf: any): string
  * @param org
  * @param fullname
  */
-export function utilNameFormat (last: string, first: string, org: string, fullname: string[]): string
+export function utilNameFormat (last: string, first: string, fullname: string, org: string, fullnameOrder: string[], prioVcardFullname: boolean): string
 {
     let name = ''
-    if (last.length === 0 && first.length === 0)
+
+    // check fullname
+    if (prioVcardFullname && fullname.length !== 0)
+    {
+        name += fullname
+        if (org.length > 0) name += ' - ' + org
+    }
+    else if (last.length === 0 && first.length === 0)
     {
         name += org
     }
     else
     {
-        if (fullname.indexOf('first') > 0)
+        if (fullnameOrder.indexOf('first') > 0)
         {
             if (last.length > 0) name += last
             if (first.length > 0) name += ' ' + first
@@ -69,7 +76,7 @@ export function utilNameFormat (last: string, first: string, org: string, fullna
             if (last.length > 0) name += ' ' + last
         }
     
-        if (org.length > 0) name += ' - ' + org
+        if (org.length > 0) name += ' - ' + org   
     }
     
     return name.replace(/\\/g, '').replace(/^ \- /g, '').replace(/  /g, '').trim()
@@ -130,7 +137,7 @@ export function utilNumberGetType (type: string|string[], number: ParsedPhoneNum
     if (!Array.isArray(type)) type = [ type ]
   
     if (number.typeIsMobile) return 'mobile'
-    else if (type.length < 2) return 'home'
+    else if (type.length < 2 || type.indexOf('home') > -1) return 'home'
     else if (type.indexOf('voice') > -1)
     {
         if (type.indexOf('work') > -1) return 'work'
@@ -219,6 +226,10 @@ export function utilParseVcard (vcard: any): any
     if (names[0] && names[0].length > 0) lastName = utilNameSanitize(names[0])
     if (names[1] && names[1].length > 0) firstName = utilNameSanitize(names[1])
 
+    // get fullname
+    let fullname: string = ''
+    if (vcf.get('n')) fullname = vcf.get('fn').valueOf().toString().trim()
+    
     // get org name
     let orgs: string[] = []
     let orgName: string = ''
@@ -279,7 +290,7 @@ export function utilParseVcard (vcard: any): any
     // get note
     let note: string = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().toString().replace(/\\,/g, ',') : ''
 
-    return {uid, lastName,firstName, orgName, tels, faxs, emails, note}
+    return {uid, lastName,firstName, fullname, orgName, tels, faxs, emails, note}
 }
 
 /**

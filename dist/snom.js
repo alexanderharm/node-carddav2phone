@@ -76,7 +76,7 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
             // check for dial prefix
             let prefix = "prefix" in account ? account.prefix : '';
             // process card
-            let entry = snomXcapProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries, xcapUniqueNumbers);
+            let entry = snomXcapProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries, xcapUniqueNumbers);
             if (entry)
                 entries.push(entry);
         }
@@ -112,9 +112,9 @@ function snomXcapProcessCards(telephoneBook, addressBooks) {
  * @param uniqueEntries
  * @param xcapUniqueNumbers
  */
-function snomXcapProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries, xcapUniqueNumbers) {
+function snomXcapProcessCard(vcf, fullname, prioVcardFullname, order, prefix, duplicates, uniqueEntries, xcapUniqueNumbers) {
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
@@ -305,7 +305,7 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
             // check for dial prefix
             let prefix = "prefix" in account ? account.prefix : '';
             // process card
-            let entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries);
+            let entry = snomTbookProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBookOrder, prefix, telephoneBook.duplicates, uniqueEntries);
             if (entry)
                 entries.push(...entry);
         }
@@ -326,9 +326,9 @@ function snomTbookProcessCards(telephoneBook, addressBooks) {
  * @param duplicates
  * @param uniqueEntries
  */
-function snomTbookProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
+function snomTbookProcessCard(vcf, fullname, prioVcardFullname, order, prefix, duplicates, uniqueEntries) {
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)

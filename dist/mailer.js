@@ -9,7 +9,7 @@ export function sendMail(subject, msg) {
     let transporter = nodemailer.createTransport({
         host: settings.mail.server,
         port: settings.mail.port,
-        secure: settings.mail.port === 465 ? true : false,
+        secure: settings.mail.port === 465 ? true : false, // true for 465, false for other ports
         auth: {
             user: settings.mail.username,
             pass: settings.mail.password
@@ -17,9 +17,9 @@ export function sendMail(subject, msg) {
     });
     // setup email data with unicode symbols
     let mailOptions = {
-        from: settings.mail.from,
-        to: settings.mail.to,
-        subject: subject,
+        from: settings.mail.from, // sender address
+        to: settings.mail.to, // list of receivers
+        subject: subject, // Subject line
         text: msg // plain text body
     };
     // send mail with defined transport object

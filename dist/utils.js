@@ -27,13 +27,19 @@ export function utilOrgName(vcf) {
  * @param org
  * @param fullname
  */
-export function utilNameFormat(last, first, org, fullname) {
+export function utilNameFormat(last, first, fullname, org, fullnameOrder, prioVcardFullname) {
     let name = '';
-    if (last.length === 0 && first.length === 0) {
+    // check fullname
+    if (prioVcardFullname && fullname.length !== 0) {
+        name += fullname;
+        if (org.length > 0)
+            name += ' - ' + org;
+    }
+    else if (last.length === 0 && first.length === 0) {
         name += org;
     }
     else {
-        if (fullname.indexOf('first') > 0) {
+        if (fullnameOrder.indexOf('first') > 0) {
             if (last.length > 0)
                 name += last;
             if (first.length > 0)
@@ -97,7 +103,7 @@ export function utilNumberGetType(type, number) {
         type = [type];
     if (number.typeIsMobile)
         return 'mobile';
-    else if (type.length < 2)
+    else if (type.length < 2 || type.indexOf('home') > -1)
         return 'home';
     else if (type.indexOf('voice') > -1) {
         if (type.indexOf('work') > -1)
@@ -179,6 +185,10 @@ export function utilParseVcard(vcard) {
         lastName = utilNameSanitize(names[0]);
     if (names[1] && names[1].length > 0)
         firstName = utilNameSanitize(names[1]);
+    // get fullname
+    let fullname = '';
+    if (vcf.get('n'))
+        fullname = vcf.get('fn').valueOf().toString().trim();
     // get org name
     let orgs = [];
     let orgName = '';
@@ -246,7 +256,7 @@ export function utilParseVcard(vcard) {
     }
     // get note
     let note = vcf.get('note') && vcf.get('note').valueOf() ? vcf.get('note').valueOf().toString().replace(/\\,/g, ',') : '';
-    return { uid, lastName, firstName, orgName, tels, faxs, emails, note };
+    return { uid, lastName, firstName, fullname, orgName, tels, faxs, emails, note };
 }
 /**
  * promisify parse xml

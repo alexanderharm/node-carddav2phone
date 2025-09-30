@@ -70,14 +70,14 @@ function yealinkProcessCards (telephoneBook: any, addressBooks: any): any
             let vcf = utilParseVcard(vcard)
 
             // skip if no name or telephone number
-            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0) continue
+            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.fullname.length === 0 && vcf.orgName.length === 0) continue
             if (vcf.tels.length === 0) continue
 
             // check for dial prefix
             let prefix = "prefix" in account ? account.prefix : ''
 
             // process card
-            let entry = yealinkProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries)
+            let entry = yealinkProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries)
             if (entry) entries.push(entry)
         }
     }
@@ -97,10 +97,10 @@ function yealinkProcessCards (telephoneBook: any, addressBooks: any): any
  * @param duplicates
  * @param uniqueEntries
  */
-function yealinkProcessCard(vcf: any, fullname: string[], order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
+function yealinkProcessCard(vcf: any, fullname: string[], prioVcardFullname: boolean, order: string[], prefix: string, duplicates: boolean, uniqueEntries: string[]): any
 {   
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname)
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname)
 
     // check for duplicates
     if (!duplicates) {

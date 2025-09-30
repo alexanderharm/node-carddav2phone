@@ -52,14 +52,14 @@ function yealinkProcessCards(telephoneBook, addressBooks) {
             // parse vCard
             let vcf = utilParseVcard(vcard);
             // skip if no name or telephone number
-            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.orgName.length === 0)
+            if (vcf.lastName.length === 0 && vcf.firstName.length === 0 && vcf.fullname.length === 0 && vcf.orgName.length === 0)
                 continue;
             if (vcf.tels.length === 0)
                 continue;
             // check for dial prefix
             let prefix = "prefix" in account ? account.prefix : '';
             // process card
-            let entry = yealinkProcessCard(vcf, telephoneBook.fullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries);
+            let entry = yealinkProcessCard(vcf, telephoneBook.fullname, telephoneBook.prioVcardFullname, telephoneBook.order, prefix, telephoneBook.duplicates, uniqueEntries);
             if (entry)
                 entries.push(entry);
         }
@@ -77,9 +77,9 @@ function yealinkProcessCards(telephoneBook, addressBooks) {
  * @param duplicates
  * @param uniqueEntries
  */
-function yealinkProcessCard(vcf, fullname, order, prefix, duplicates, uniqueEntries) {
+function yealinkProcessCard(vcf, fullname, prioVcardFullname, order, prefix, duplicates, uniqueEntries) {
     // entry name
-    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.orgName, fullname);
+    let entryName = utilNameFormat(vcf.lastName, vcf.firstName, vcf.fullname, vcf.orgName, fullname, prioVcardFullname);
     // check for duplicates
     if (!duplicates) {
         if (uniqueEntries.indexOf(entryName) > -1)
